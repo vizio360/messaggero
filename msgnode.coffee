@@ -37,7 +37,7 @@ server = net.createServer (c) ->
         data = data.split separator
         cmd = data[1]
         data = data[1..]
-        pm.execute cmd, data, originalMessage
+        pm.execute c, cmd, data, originalMessage
 
 
 startServer= ->

@@ -3,8 +3,9 @@ class Login
         login: @login,
         logout: @logout
 
-    execute: (command, data) ->
+    execute: (connection, command, data) ->
         @commands()[command](data)
+        connection.write command+" executed"
 
 
     login: (data) ->
