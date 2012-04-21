@@ -1,9 +1,11 @@
 net = require 'net'
-plugin_manager = require './plugin_manager'
+PluginManager = require('./plugin_manager').PluginManager
 fs = require 'fs'
-connection = require './connection'
+Connection = require('./connection').Connection
+Packet = require('./packet').Packet
 
-pm = new plugin_manager.PluginManager()
+### Loading plugins ###
+pm = new PluginManager()
 
 pluginDir = "./plugins"
 
@@ -21,6 +23,9 @@ fs.readdir pluginDir, (err, files) =>
 
    startServer()
 
+### ---------- ###
+
+
 connections = {}
 
 server = net.createServer (c) ->
@@ -28,7 +33,7 @@ server = net.createServer (c) ->
     console.log "server connected"
 
 
-    currentConnection = new connection.Connection(c)
+    currentConnection = new Connection(c)
     connections[c] = currentConnection
     c.on 'end', ->
         console.log "server disconnected"
@@ -37,12 +42,20 @@ server = net.createServer (c) ->
     c.write "hello!\r\n"
 
     c.on 'data', (data) ->
-        originalMessage = data
+        # removing \r\n character
+        if data.length > 1 and
+           data.charAt(data.length-2) == '\r' and
+           data.charAt(data.length-1) == '\n'
+            data = data.substring(0, data.length-2)
+
         separator = data.charAt(0)
         data = data.split separator
         command = data[1]
-        messageContent = data[1..]
-        pm.execute connections[c], command, messageContent, originalMessage
+        messageContent = data[2..]
+
+        msgPacket = new Packet separator, command, messageContent
+
+        pm.execute connections[c], msgPacket
 
 
 startServer= ->

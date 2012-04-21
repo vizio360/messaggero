@@ -3,12 +3,18 @@ class Chat
     commands: =>
         say: @say
 
-    execute: (connection, command, data) ->
-        @commands()[command](data)
+    execute: (connection, msgPacket) =>
+        # users need to be logged in to be able to
+        # use the chat
+        if not (connection.getData("username")?)
+            console.log "not logged in"
+            return
+
+        @commands()[msgPacket.command](msgPacket)
 
 
-    say: (data) ->
-        console.log "saying in "+data
+    say: (msgPacket) ->
+        console.log "saying in "+msgPacket.messageFragments
 
 
 

@@ -12,13 +12,13 @@ class PluginManager
             console.log plugin.description+ " listening for "+command+" command"
             
 
-    execute: (connection, command, data, originalMessage) ->
+    execute: (connection, msgPacket) =>
 
-        plugin = @pluginMap[command]
+        plugin = @pluginMap[msgPacket.command]
 
         if plugin?
-            plugin.execute(connection, command, data)
+            plugin.execute(connection, msgPacket)
         else
-            console.log "no plugin to handle message:#{originalMessage}"
+            console.log "no plugin to handle message:#{msgPacket}"
 
 exports.PluginManager = PluginManager
