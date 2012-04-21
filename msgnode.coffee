@@ -1,8 +1,7 @@
 net = require 'net'
 plugin_manager = require './plugin_manager'
 fs = require 'fs'
-
-
+connection = require './connection'
 
 pm = new plugin_manager.PluginManager()
 
@@ -22,22 +21,28 @@ fs.readdir pluginDir, (err, files) =>
 
    startServer()
 
-
+connections = {}
 
 server = net.createServer (c) ->
     c.setEncoding 'utf8'
     console.log "server connected"
+
+
+    currentConnection = new connection.Connection(c)
+    connections[c] = currentConnection
     c.on 'end', ->
         console.log "server disconnected"
+        delete connections[this]
+
     c.write "hello!\r\n"
 
     c.on 'data', (data) ->
         originalMessage = data
         separator = data.charAt(0)
         data = data.split separator
-        cmd = data[1]
-        data = data[1..]
-        pm.execute c, cmd, data, originalMessage
+        command = data[1]
+        messageContent = data[1..]
+        pm.execute connections[c], command, messageContent, originalMessage
 
 
 startServer= ->

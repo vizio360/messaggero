@@ -1,4 +1,5 @@
 class Chat
+    description: "Chat"
     commands: =>
         say: @say
 

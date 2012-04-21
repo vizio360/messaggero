@@ -1,11 +1,12 @@
 class Login
+    description: "Login"
     commands: =>
         login: @login,
         logout: @logout
 
     execute: (connection, command, data) ->
         @commands()[command](data)
-        connection.write command+" executed"
+        connection.socket.write command+" executed"
 
 
     login: (data) ->
