@@ -1,7 +1,11 @@
 fs = require 'fs'
+Connection = require('../connection').Connection
 Packet = require('../packet').Packet
+
 class Login
+
     description: "Login"
+
     commands: =>
         login: @login,
         logout: @logout
@@ -11,10 +15,15 @@ class Login
 
     loadUsers: (err, data) =>
         @users = JSON.parse data
-        console.log @users["vizio"]
+
+
+    #notifications from plugin manager
+    onNewConnection: (connection) =>
+
+    onConnectionDisconnected: (connection) =>
+    #--
 
     execute: (connection, msgPacket) =>
-        console.log msgPacket
         @commands()[msgPacket.command](connection, msgPacket)
         connection.socket.write msgPacket.command+" executed"
 
@@ -22,23 +31,23 @@ class Login
     login: (connection, msgPacket) =>
 
         if msgPacket.messageFragments.length != 3
-            msg = new packet.Packet msgPacket.separator, "KO", ["bad request"]
-            return connection.send msg
+            msg = new Packet msgPacket.separator, "KO", ["bad request"]
+            return connection.emit Connection.SEND_PACKET_EVENT, msg
 
         [username, timestamp, token] = msgPacket.messageFragments
 
         if not @users[username]?
-            msg = new packet.Packet msgPacket.separator, "KO", ["User doesn't exist!"]
-            return connection.send msg
+            msg = new Packet msgPacket.separator, "KO", ["User doesn't exist!"]
+            return connection.emit Connection.SEND_PACKET_EVENT, msg
 
         if @users[username] != token
-            msg = new packet.Packet msgPacket.separator, "KO", ["wrong credentials"]
-            return connection.send msg
+            msg = new Packet msgPacket.separator, "KO", ["wrong credentials"]
+            return connection.emit Connection.SEND_PACKET_EVENT, msg
 
         connection.setData "username", username
 
-        msg = new packet.Packet msgPacket.separator, "OK", ["YEAH!!!"]
-        return connection.send msg
+        msg = new Packet msgPacket.separator, "OK", ["YEAH!!!"]
+        return connection.emit Connection.SEND_PACKET_EVENT, msg
 
 
     logout: (connection, msgPacket) =>

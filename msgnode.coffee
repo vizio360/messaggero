@@ -17,8 +17,8 @@ fs.readdir pluginDir, (err, files) =>
        continue if file[file.length-1] != "coffee"
        # rebuild filename without coffee extension
        file = file[0...-1].join(".")
-       p = require pluginDir+"/"+file
-       loadedPlugin = new p.Plugin()
+       Plugin = require(pluginDir+"/"+file).Plugin
+       loadedPlugin = new Plugin()
        pm.register loadedPlugin
 
    startServer()
@@ -27,21 +27,32 @@ fs.readdir pluginDir, (err, files) =>
 
 
 connections = {}
+count = 0
 
-server = net.createServer (c) ->
-    c.setEncoding 'utf8'
+server = net.createServer (socket) ->
+    socket.setEncoding 'utf8'
     console.log "server connected"
 
+    pm.onNewConnection socket
 
-    currentConnection = new Connection(c)
-    connections[c] = currentConnection
-    c.on 'end', ->
+
+    socket.id = count
+    currentConnection = new Connection(socket)
+    # find a better way to identify sockets
+    count += 1
+
+    connections[socket.id] = currentConnection
+    
+
+    socket.on 'end', ->
         console.log "server disconnected"
-        delete connections[this]
+        connections[this.id].disconnect()
+        connections[this.id].removeAllListeners()
+        delete connections[this.id]
 
-    c.write "hello!\r\n"
+    socket.write "hello!\r\n"
 
-    c.on 'data', (data) ->
+    socket.on 'data', (data) ->
         # removing \r\n character
         if data.length > 1 and
            data.charAt(data.length-2) == '\r' and
@@ -54,8 +65,9 @@ server = net.createServer (c) ->
         messageContent = data[2..]
 
         msgPacket = new Packet separator, command, messageContent
+        
 
-        pm.execute connections[c], msgPacket
+        pm.execute connections[this.id], msgPacket
 
 
 startServer= ->
