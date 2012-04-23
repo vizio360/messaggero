@@ -1,8 +1,9 @@
+PluginBase = require('../lib/plugin/plugin.base').PluginBase
+Packet = require('../net/connection/packet').Packet
 fs = require 'fs'
-Connection = require('../connection').Connection
-Packet = require('../packet').Packet
+Connection = require('../net/connection/connection').Connection
 
-class Login
+class Login extends PluginBase
 
     description: "Login"
 
@@ -12,20 +13,10 @@ class Login
 
     constructor: ->
         fs.readFile './data/users.json', 'utf8', @loadUsers
+        super
 
     loadUsers: (err, data) =>
         @users = JSON.parse data
-
-
-    #notifications from plugin manager
-    onNewConnection: (connection) =>
-
-    onConnectionDisconnected: (connection) =>
-    #--
-
-    execute: (connection, msgPacket) =>
-        @commands()[msgPacket.command](connection, msgPacket)
-        connection.socket.write msgPacket.command+" executed"
 
 
     login: (connection, msgPacket) =>

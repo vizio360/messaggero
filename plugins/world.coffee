@@ -1,9 +1,11 @@
+PluginBase = require('../lib/plugin/plugin.base').PluginBase
+Packet = require('../net/connection/packet').Packet
 fs = require 'fs'
-Connection = require('../connection').Connection
-Packet = require('../packet').Packet
+Connection = require('../net/connection/connection').Connection
 
 
-class World
+class World extends PluginBase
+
     @BROADCAST_TO_ROOM_EVENT: "World::BROADCAST_TO_ROOM::"
 
     description: "World"
@@ -15,6 +17,7 @@ class World
     constructor: ->
         @worlds = {}
         fs.readFile './data/worlds.json', 'utf8', @loadWorlds
+        super
 
     loadWorlds: (err, data) =>
         worlds = JSON.parse data
@@ -29,12 +32,6 @@ class World
                 @worlds[world]["rooms"][room] = r
 
 
-    #notifications from plugin manager
-    onNewConnection: (connection) =>
-
-    onConnectionDisconnected: (connection) =>
-    #--
-
     execute: (connection, msgPacket) =>
 
         # users need to be logged in to be able to
@@ -43,8 +40,7 @@ class World
             console.log "not logged in"
             return
 
-        @commands()[msgPacket.command](connection, msgPacket)
-        connection.socket.write msgPacket.command+" executed"
+        super connection, msgPacket
 
 
     world: (connection, msgPacket) =>
@@ -106,6 +102,10 @@ exports.Plugin = World
 
 class Room
 
+    # if I declare this varialbe here it behaves like
+    # it's a static one... no idea why
+    # connections: {}
+
     constructor: (@id) ->
         @connections = {}
 
@@ -120,12 +120,8 @@ class Room
         delete @connections[connection.id]
 
     broadcast: (sourceConnection, sourcePacket) =>
-        actualMessage = sourcePacket.messageFragments[0]
-        msg = new Packet sourcePacket.separator, "sez", []
-        sourceUsername = sourceConnection.getData("username")
         for id, connection of @connections
             # we don't want to echo back
             if sourceConnection.id.toString() isnt id.toString()
-                msg.messageFragments = [sourceUsername, actualMessage]
-                connection.emit Connection.SEND_PACKET_EVENT, msg
+                connection.emit Connection.SEND_PACKET_EVENT, sourcePacket
 

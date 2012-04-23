@@ -1,75 +1,69 @@
-net = require 'net'
-PluginManager = require('./plugin_manager').PluginManager
+PluginManager = require('./lib/plugin/plugin_manager').PluginManager
 fs = require 'fs'
-Connection = require('./connection').Connection
-Packet = require('./packet').Packet
+Connection = require('./net/connection/connection').Connection
+Packet = require('./net/connection/packet').Packet
+async = require('async')
+
 
 ### Loading plugins ###
 pm = new PluginManager()
 
 pluginDir = "./plugins"
 
-fs.readdir pluginDir, (err, files) =>
-   for file in files
-       #removing the coffee extension
-       file = file.split(".")
-       # check if it is a coffee file
-       continue if file[file.length-1] != "coffee"
-       # rebuild filename without coffee extension
-       file = file[0...-1].join(".")
-       Plugin = require(pluginDir+"/"+file).Plugin
-       loadedPlugin = new Plugin()
-       pm.register loadedPlugin
 
-   startServer()
+loadPlugins = (callback) ->
 
-### ---------- ###
-
-
-connections = {}
-count = 0
-
-server = net.createServer (socket) ->
-    socket.setEncoding 'utf8'
-    console.log "server connected"
-
-    pm.onNewConnection socket
+    fs.readdir pluginDir, (err, files) =>
+        for file in files
+            #removing the coffee extension
+            file = file.split(".")
+            # check if it is a coffee file
+            continue if file[file.length-1] != "coffee"
+            # rebuild filename without coffee extension
+            file = file[0...-1].join(".")
+            Plugin = require(pluginDir+"/"+file).Plugin
+            loadedPlugin = new Plugin()
+            pm.register loadedPlugin
+        callback null, 1
 
 
-    socket.id = count
-    currentConnection = new Connection(socket)
-    # find a better way to identify sockets
-    count += 1
+# loading configuration #
+configuration = {}
 
-    connections[socket.id] = currentConnection
+loadConfiguration = (callback) ->
+    fs.readFile './config.json', 'utf8', (err, data) ->
+        configuration = JSON.parse data
+        callback null, 2
+
+startApplication = (err, results)->
+    Server = require('./net/server/'+configuration.serverType).Server
+    server = new Server configuration.port
+    #server.on Server.NEW_CONNECTION_EVENT, onNewConnection
+    #server.on Server.DATA_EVENT, onData
+    #server.on Server.DISCONNECTION_EVENT, onDisconnection
+    server.startListening()
     
 
-    socket.on 'end', ->
-        console.log "server disconnected"
-        connections[this.id].disconnect()
-        connections[this.id].removeAllListeners()
-        delete connections[this.id]
+async.series [loadPlugins, loadConfiguration], startApplication
 
-    socket.write "hello!\r\n"
+###
+onNewConnection = (connection) ->
+    console.log "new connection", connection.id
+    #pm.onNewConnection connection
 
-    socket.on 'data', (data) ->
-        # removing \r\n character
-        if data.length > 1 and
-           data.charAt(data.length-2) == '\r' and
-           data.charAt(data.length-1) == '\n'
-            data = data.substring(0, data.length-2)
+onData = (connection, data) ->
+    console.log "data received from connection", connection.id
 
-        separator = data.charAt(0)
-        data = data.split separator
-        command = data[1]
-        messageContent = data[2..]
+    separator = data.charAt(0)
+    data = data.split separator
+    command = data[1]
+    messageContent = data[2..]
 
-        msgPacket = new Packet separator, command, messageContent
-        
+    msgPacket = new Packet separator, command, messageContent
 
-        pm.execute connections[this.id], msgPacket
+    pm.execute connection, msgPacket
 
 
-startServer= ->
-    server.listen 8124, ->
-        console.log "server bound"
+onDisconnection = (connection) ->
+    console.log "connection ended", connection.id
+###
