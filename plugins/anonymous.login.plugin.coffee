@@ -2,19 +2,17 @@ fs = require 'fs'
 Connection = require('../connection').Connection
 Packet = require('../packet').Packet
 
-class Login
+class AnonymousLogin
 
-    description: "Login"
+    @userCount: 0
+    description: "AnonymousLogin"
 
     commands: =>
         login: @login,
         logout: @logout
 
     constructor: ->
-        fs.readFile './data/users.json', 'utf8', @loadUsers
 
-    loadUsers: (err, data) =>
-        @users = JSON.parse data
 
 
     #notifications from plugin manager
@@ -25,26 +23,19 @@ class Login
 
     execute: (connection, msgPacket) =>
         @commands()[msgPacket.command](connection, msgPacket)
-        connection.socket.write msgPacket.command+" executed"
+        connection.write msgPacket.command+" executed"
 
 
     login: (connection, msgPacket) =>
 
-        if msgPacket.messageFragments.length != 3
+        if msgPacket.messageFragments.length != 1
             msg = new Packet msgPacket.separator, "KO", ["bad request"]
             return connection.emit Connection.SEND_PACKET_EVENT, msg
 
-        [username, timestamp, token] = msgPacket.messageFragments
+        [username] = msgPacket.messageFragments
 
-        if not @users[username]?
-            msg = new Packet msgPacket.separator, "KO", ["User doesn't exist!"]
-            return connection.emit Connection.SEND_PACKET_EVENT, msg
-
-        if @users[username] != token
-            msg = new Packet msgPacket.separator, "KO", ["wrong credentials"]
-            return connection.emit Connection.SEND_PACKET_EVENT, msg
-
-        connection.setData "username", username
+        connection.setData "username", username+"-"+AnonymousLogin.userCount
+        AnonymousLogin.userCount += 1
 
         msg = new Packet msgPacket.separator, "OK", ["YEAH!!!"]
         return connection.emit Connection.SEND_PACKET_EVENT, msg
@@ -56,4 +47,4 @@ class Login
         
 
 
-exports.Plugin = Login
+exports.Plugin = AnonymousLogin

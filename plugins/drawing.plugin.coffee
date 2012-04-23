@@ -1,11 +1,10 @@
-Packet= require('../packet').Packet
 World = require('./world').Plugin
-class Chat
+class Drawing
 
-    description: "Chat"
+    description: "Drawing"
 
     commands: =>
-        say: @say
+        drawing: @draw
 
     #notifications from plugin manager
     onNewConnection: (connection) =>
@@ -23,13 +22,10 @@ class Chat
         @commands()[msgPacket.command](connection, msgPacket)
 
 
-    say: (connection, msgPacket) =>
+    draw: (connection, msgPacket) =>
         currentRoom = connection.getData "room"
         return if not(currentRoom?)
-        actualMessage = msgPacket.messageFragments[0]
-        sourceUsername = connection.getData("username")
-        msg = new Packet msgPacket.separator, "sez", [sourceUsername, actualMessage]
-        connection.emit World.BROADCAST_TO_ROOM_EVENT+currentRoom, connection, msg
+        connection.emit World.BROADCAST_TO_ROOM_EVENT+currentRoom, connection, msgPacket
 
 
-exports.Plugin = Chat
+exports.Plugin = Drawing

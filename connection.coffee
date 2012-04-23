@@ -22,12 +22,15 @@ class Connection extends EventEmitter
         delete @data[key]
 
     onSend: (messagePacket) =>
-        @socket.write messagePacket.stringify()
+        @write messagePacket.stringify()
         @emit Connection.PACKET_SENT_EVENT
         
     disconnect: () =>
         # all plugins need to listen to this event
         # and remove all their listeners
         @emit Connection.DISCONNECT_EVENT
+
+    write: (msg) =>
+        @socket.sendUTF msg
          
 exports.Connection = Connection
