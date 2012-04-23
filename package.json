@@ -1,3 +1,4 @@
-"dependencies": {
-    "net": "1.0.0"
+{ "name" : "hermes"
+    , "version" : "1.0.0"
+    , "dependencies" : { "net" : "1.0.0" } 
 }
