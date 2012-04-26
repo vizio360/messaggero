@@ -38,15 +38,14 @@ loadConfiguration = (callback) ->
 startApplication = (err, results)->
     Server = require('./net/server/'+configuration.serverType).Server
     server = new Server configuration.port
-    #server.on Server.NEW_CONNECTION_EVENT, onNewConnection
-    #server.on Server.DATA_EVENT, onData
-    #server.on Server.DISCONNECTION_EVENT, onDisconnection
+    server.on Server.NEW_CONNECTION_EVENT, onNewConnection
+    server.on Server.DATA_EVENT, onData
+    server.on Server.DISCONNECTION_EVENT, onDisconnection
     server.startListening()
     
 
 async.series [loadPlugins, loadConfiguration], startApplication
 
-###
 onNewConnection = (connection) ->
     console.log "new connection", connection.id
     #pm.onNewConnection connection
@@ -66,4 +65,3 @@ onData = (connection, data) ->
 
 onDisconnection = (connection) ->
     console.log "connection ended", connection.id
-###

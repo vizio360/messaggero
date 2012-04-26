@@ -1,4 +1,4 @@
 {
-    "serverType": "websockets",
+    "serverType": "tcpsockets",
     "port": 8124
 }
