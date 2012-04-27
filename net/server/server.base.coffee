@@ -25,7 +25,7 @@ class BaseServer extends EventEmitter
         @connections[id]
 
     removeConnection: (id) =>
-        delete @connections[socket.id]
+        delete @connections[id]
 
 
 

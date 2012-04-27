@@ -3,7 +3,7 @@ WebSocketServer = require('websocket').server
 BaseServer = require('./server.base').BaseServer
 Connection = require('../connection/connection').Connection
 
-class WebSocketServer extends BaseServer
+class WSocketsServer extends BaseServer
 
     constructor: (@port) ->
         @server = http.createServer (request, response) ->
@@ -21,7 +21,7 @@ class WebSocketServer extends BaseServer
         @addConnection currentConnection
 
 
-        @emit WebSocketServer.NEW_CONNECTION_EVENT, currentConnection
+        @emit WSocketsServer.NEW_CONNECTION_EVENT, currentConnection
 
 
         socket.on 'close', =>
@@ -29,7 +29,7 @@ class WebSocketServer extends BaseServer
             connection = @getConnection socket.id
             connection.disconnect()
             connection.removeAllListeners()
-            @emit WebSocketServer.DISCONNECTION_EVENT, connection
+            @emit WSocketsServer.DISCONNECTION_EVENT, connection
             @removeConnection socket.id
 
         socket.on 'message', (data) =>
@@ -40,7 +40,7 @@ class WebSocketServer extends BaseServer
             # removing \r\n character
             data = data.substring(0, data.length-2) while (data.length > 1 and data.charAt(data.length-2) == '\r' and data.charAt(data.length-1) == '\n')
 
-            @emit WebSocketServer.DATA_EVENT, @getConnection(socket.id), data
+            @emit WSocketsServer.DATA_EVENT, @getConnection(socket.id), data
 
 
     startListening: =>
@@ -50,4 +50,4 @@ class WebSocketServer extends BaseServer
         @wsServer.on 'request', @onConnectionEstablished
 
 
-exports.Server = WebSocketServer
+exports.Server = WSocketsServer
