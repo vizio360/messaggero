@@ -13,6 +13,7 @@ class WebSocketServer extends BaseServer
         @socket.sendUTF msg
 
     onConnectionEstablished: (request) =>
+        console.log "connection established"
         socket = request.accept(null, request.origin)
         socket.id = @getUniqueID()
         

@@ -13,6 +13,7 @@ pluginDir = "./plugins"
 
 loadPlugins = (callback) ->
 
+    console.log "loading plugins"
     fs.readdir pluginDir, (err, files) =>
         for file in files
             #removing the coffee extension
@@ -31,11 +32,14 @@ loadPlugins = (callback) ->
 configuration = {}
 
 loadConfiguration = (callback) ->
+    console.log "loading configuration"
     fs.readFile './config.json', 'utf8', (err, data) ->
         configuration = JSON.parse data
         callback null, 2
 
+server = null
 startApplication = (err, results)->
+    console.log "loading application"
     Server = require('./net/server/'+configuration.serverType).Server
     server = new Server configuration.port
     server.on Server.NEW_CONNECTION_EVENT, onNewConnection
