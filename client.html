@@ -1,0 +1,74 @@
+<html>
+<head>
+<style type="text/css">
+#msgs {
+    height: 50%;
+    overflow-y: scroll;
+}
+
+div.odd {
+    background-color: gray;
+}
+</style>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
+<script type="text/javascript" src="socket.io.js"></script>
+<title>Realtime Chat Test</title>
+</head>
+<body>
+<div id="container">
+<div id="msgs"></div>
+<div id="form">
+<form id="chat" action="javascript:sendMsg()">
+Username:<input type="text" name="username" /><br />
+
+Message:<input id="msg" type="text" name="message" /><br />
+<input type="submit" />
+</form>
+</div>
+</div>
+</body>
+<script type="text/javascript">
+var socket = new io.Socket("localhost", {port:8124});
+socket.connect();
+
+var classes = new Array('even', 'odd');
+var numMsgs = 0;
+
+function reconnect() {
+    if( socket.connecting ) {
+        setTimeout('reconnect()',1000);
+    }
+    else if( !socket.connected ) {
+        socket.connect();
+        setTimeout('reconnect()',1000);
+    }
+}
+
+socket.on('disconnect', function() {
+    reconnect();
+});
+
+socket.on('message', function(data) {
+    var ms = JSON.parse(data);
+    if( ms.username !== undefined && ms.message !== undefined ) {
+        numMsgs++;
+        $('#msgs').append( function() {
+            var d = $('<div class="'+classes[numMsgs%2]+'"/>');
+            d.text(ms.username + ' says: ' + ms.message);
+            return d;
+        });
+        var objDiv = document.getElementById('msgs');
+        objDiv.scrollTop = objDiv.scrollHeight;
+    }
+}); 
+
+function sendMsg() {
+    var values = {};
+    $.each($('#chat').serializeArray(), function(i,v) {
+        values[v.name] = v.value;
+    });
+    document.getElementById("msg").value = "";
+    socket.send(JSON.stringify(values));
+}
+</script>
+</html>

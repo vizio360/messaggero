@@ -1,4 +1,4 @@
 {
-    "serverType": "tcpsockets",
+    "serverType": "socket.io.server",
     "port": 8124
 }
