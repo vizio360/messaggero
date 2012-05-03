@@ -94,6 +94,12 @@ class World extends PluginBase
         msg = new Packet msgPacket.separator, "room", ["IN", roomToJoin]
         connection.emit Connection.SEND_PACKET_EVENT, msg
 
+    unregister: =>
+        for world, rooms of @world
+            for room of rooms
+                room.destroy()
+
+
 
 
 exports.Plugin = World
@@ -125,3 +131,5 @@ class Room
             if sourceConnection.id.toString() isnt id.toString()
                 connection.emit Connection.SEND_PACKET_EVENT, sourcePacket
 
+    destroy: =>
+        @connections = null

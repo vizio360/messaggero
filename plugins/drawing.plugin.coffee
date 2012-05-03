@@ -1,5 +1,5 @@
 PluginBase = require('../lib/plugin/plugin.base').PluginBase
-World = require('./world').Plugin
+World = require('./world.plugin').Plugin
 
 class Drawing extends PluginBase
 

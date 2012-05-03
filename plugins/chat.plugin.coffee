@@ -1,6 +1,6 @@
 PluginBase = require('../lib/plugin/plugin.base').PluginBase
 Packet = require('../net/connection/packet').Packet
-World = require('./world').Plugin
+World = require('./world.plugin').Plugin
 
 class Chat extends PluginBase
 

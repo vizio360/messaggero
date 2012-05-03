@@ -8,23 +8,22 @@ async = require('async')
 ### Loading plugins ###
 pm = new PluginManager()
 
-pluginDir = "./plugins"
-
-
 loadPlugins = (callback) ->
 
     console.log "loading plugins"
-    fs.readdir pluginDir, (err, files) =>
-        for file in files
-            #removing the coffee extension
-            file = file.split(".")
-            # check if it is a coffee file
-            continue if file[file.length-1] != "coffee"
-            # rebuild filename without coffee extension
-            file = file[0...-1].join(".")
-            Plugin = require(pluginDir+"/"+file).Plugin
-            loadedPlugin = new Plugin()
-            pm.register loadedPlugin
+    fs.readdir pm.pluginDir, (err, files) =>
+        if err?
+            console.log err
+        else
+            for file in files
+                #removing the coffee extension
+                file = file.split(".")
+                # check if it is a coffee file
+                continue if file[file.length-1] != "coffee"
+                # rebuild filename without coffee extension
+                file = file[0...-1].join(".")
+                console.log file
+                pm.registerByName file
         callback null, 1
 
 
