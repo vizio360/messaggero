@@ -7,11 +7,11 @@ class PluginManager
 
 
     constructor: ->
-        file_name = "plugin_manager.plugin"
+        file_name = "admin.plugin"
         Plugin = require("./"+file_name).Plugin
         loadedPlugin = new Plugin(@)
         loadedPlugin.file_name = file_name
-        @register loadedPlugin
+        @register loadedPlugin, true
         
 
     registerByName: (plugin_file_name) =>
@@ -28,12 +28,12 @@ class PluginManager
 
 
 
-    register: (plugin) =>
+    register: (plugin, permanent = false) =>
         # instead we should get the name of the plugin from
         # the constructor.toString() function
         console.log plugin.description+" loaded\r\n"
 
-        @pluginRegistered.push plugin
+        @pluginRegistered.push plugin if not permanent
 
         for command of plugin.commands()
             @pluginMap[command] or= new Array()

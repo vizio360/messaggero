@@ -47,12 +47,12 @@ class World extends PluginBase
         
         if msgPacket.messageFragments.length != 1
             msg = new Packet msgPacket.separator, "KO", ["bad request"]
-            return connection.emit Connection.SEND_PACKET_EVENT, msg
+            return connection.send msg
 
         worldToJoin = msgPacket.messageFragments[0]
         if not @worlds[worldToJoin]?
             msg = new Packet msgPacket.separator, "world", ["NO",worldToJoin]
-            return connection.emit Connection.SEND_PACKET_EVENT, msg
+            return connection.send msg
 
         # automatically join the lobby
 
@@ -62,13 +62,13 @@ class World extends PluginBase
         console.log "about to join lobby "+connection.id
         @worlds[worldToJoin]["rooms"]["lobby"].join(connection)
         msg = new Packet msgPacket.separator, "world", ["IN", worldToJoin]
-        connection.emit Connection.SEND_PACKET_EVENT, msg
+        connection.send msg
 
     join: (connection, msgPacket) =>
 
         if msgPacket.messageFragments.length != 1
             msg = new Packet msgPacket.separator, "KO", ["bad request"]
-            return connection.emit Connection.SEND_PACKET_EVENT, msg
+            return connection.send msg
 
         roomToJoin = msgPacket.messageFragments[0]
         currentWorld = connection.getData("world")
@@ -76,13 +76,13 @@ class World extends PluginBase
         
         if not (currentWorld?)
             msg = new Packet msgPacket.separator, "KO", ["not in a world"]
-            return connection.emit Connection.SEND_PACKET_EVENT, msg
+            return connection.send msg
 
         currentRoom = connection.getData("room")
 
         if not (@worlds[currentWorld]["rooms"][roomToJoin]?)
             msg = new Packet msgPacket.separator, "room", ["NO", roomToJoin]
-            return connection.emit Connection.SEND_PACKET_EVENT, msg
+            return connection.send msg
 
 
         @worlds[currentWorld]["rooms"][currentRoom].leave(connection)
@@ -92,7 +92,7 @@ class World extends PluginBase
         connection.setData "room", roomToJoin
 
         msg = new Packet msgPacket.separator, "room", ["IN", roomToJoin]
-        connection.emit Connection.SEND_PACKET_EVENT, msg
+        connection.send msg
 
     unregister: =>
         for world, rooms of @world
@@ -129,7 +129,7 @@ class Room
         for id, connection of @connections
             # we don't want to echo back
             if sourceConnection.id.toString() isnt id.toString()
-                connection.emit Connection.SEND_PACKET_EVENT, sourcePacket
+                connection.send sourcePacket
 
     destroy: =>
         @connections = null

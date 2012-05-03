@@ -15,16 +15,15 @@ class AnonymousLogin extends PluginBase
     login: (connection, msgPacket) =>
 
         if msgPacket.messageFragments.length != 1
-            msg = new Packet msgPacket.separator, "KO", ["bad request"]
-            return connection.emit Connection.SEND_PACKET_EVENT, msg
+            msg = new Packet msgPacket.separator, "KO", ["Anonymous bad request"]
+        else
+            [username] = msgPacket.messageFragments
 
-        [username] = msgPacket.messageFragments
+            connection.setData "username", username+"-"+AnonymousLogin.userCount
+            AnonymousLogin.userCount += 1
 
-        connection.setData "username", username+"-"+AnonymousLogin.userCount
-        AnonymousLogin.userCount += 1
-
-        msg = new Packet msgPacket.separator, "OK", ["YEAH!!!"]
-        return connection.emit Connection.SEND_PACKET_EVENT, msg
+            msg = new Packet msgPacket.separator, "OK", ["Anonymous YEAH!!!"]
+        connection.send msg
 
 
     logout: (connection, msgPacket) =>

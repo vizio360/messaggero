@@ -23,22 +23,18 @@ class Login extends PluginBase
 
         if msgPacket.messageFragments.length != 3
             msg = new Packet msgPacket.separator, "KO", ["bad request"]
-            return connection.emit Connection.SEND_PACKET_EVENT, msg
+        else
+            [username, timestamp, token] = msgPacket.messageFragments
+            if not @users[username]?
+                msg = new Packet msgPacket.separator, "KO", ["User doesn't exist!"]
+            else
+                if @users[username] != token
+                    msg = new Packet msgPacket.separator, "KO", ["wrong credentials"]
+                else
+                    connection.setData "username", username
+                    msg = new Packet msgPacket.separator, "OK", ["YEAH!!!"]
 
-        [username, timestamp, token] = msgPacket.messageFragments
-
-        if not @users[username]?
-            msg = new Packet msgPacket.separator, "KO", ["User doesn't exist!"]
-            return connection.emit Connection.SEND_PACKET_EVENT, msg
-
-        if @users[username] != token
-            msg = new Packet msgPacket.separator, "KO", ["wrong credentials"]
-            return connection.emit Connection.SEND_PACKET_EVENT, msg
-
-        connection.setData "username", username
-
-        msg = new Packet msgPacket.separator, "OK", ["YEAH!!!"]
-        return connection.emit Connection.SEND_PACKET_EVENT, msg
+        connection.send msg
 
 
     logout: (connection, msgPacket) =>

@@ -6,7 +6,7 @@ class Plugin_Manager_Plugin extends PluginBase
 
     constructor: (@plugin_manager) ->
 
-    description: "Plugin Manager"
+    description: "Admin"
 
     commands: =>
         plugin: @plugin
@@ -19,7 +19,7 @@ class Plugin_Manager_Plugin extends PluginBase
         fragments = msgPacket.messageFragments
         if fragments.length == 0
             msg = new Packet msgPacket.separator, "plugin", ["bad request"]
-            connection.emit Connection.SEND_PACKET_EVENT, msg
+            connection.send msg
             return
 
         subcommand = msgPacket.messageFragments[0]
@@ -29,22 +29,30 @@ class Plugin_Manager_Plugin extends PluginBase
                 result = @plugin_manager.registerByName msgPacket.messageFragments[1]
                 if not result
                     msg = new Packet msgPacket.separator, "plugin", ["no plugin named "+plugin_name]
-                    connection.emit Connection.SEND_PACKET_EVENT, msg
+                    connection.send msg
 
             when "unload"
                 plugin_name = msgPacket.messageFragments[1]
                 result = @plugin_manager.unregisterByName plugin_name
                 if not result
                     msg = new Packet msgPacket.separator, "plugin", ["no plugin named "+plugin_name]
-                    connection.emit Connection.SEND_PACKET_EVENT, msg
+                    connection.send msg
 
             when "list"
                 plugins = new Array()
                 plugins.push plugin.file_name for plugin in @plugin_manager.pluginRegistered
                 msg = new Packet msgPacket.separator, "plugin_registered", plugins
-                connection.emit Connection.SEND_PACKET_EVENT, msg
+                connection.send msg
+            when "listcommands"
+                plugins = new Array()
+                for plugin in @plugin_manager.pluginRegistered
+                    str = plugin.file_name+"@"
+                    for command of plugin.commands()
+                        str += command+"|"
+                    plugins.push str
+                msg = new Packet msgPacket.separator, "plugin_commands", plugins
+                connection.send msg
 
-                
 
     
     #notifications from plugin manager

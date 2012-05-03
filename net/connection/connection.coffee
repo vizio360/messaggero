@@ -1,7 +1,6 @@
 EventEmitter = require('events').EventEmitter
 
 class Connection extends EventEmitter
-    @SEND_PACKET_EVENT: "Connection::SEND_PACKET"
     @DISCONNECT_EVENT: "Connection::DISCONNECT"
     @PACKET_SENT_EVENT: "Connection::PACKET_SENT"
 
@@ -9,9 +8,6 @@ class Connection extends EventEmitter
     constructor: (@socket, @data={}, @writeMethod) ->
         super
         @id = @socket.id
-        # FIXME remove listener and update all other
-        # files to just use a Connection.Send method
-        @on Connection.SEND_PACKET_EVENT, @onSend
 
 
     setData: (key, value) =>
@@ -23,7 +19,7 @@ class Connection extends EventEmitter
     removeData: (key) =>
         delete @data[key]
 
-    onSend: (messagePacket) =>
+    send: (messagePacket) =>
         @writeMethod messagePacket.stringify()
         @emit Connection.PACKET_SENT_EVENT
         
