@@ -6,8 +6,6 @@ Connection = require('../net/connection/connection').Connection
 
 class World extends PluginBase
 
-    @BROADCAST_TO_ROOM_EVENT: "World::BROADCAST_TO_ROOM::"
-
     description: "World"
 
     commands: =>
@@ -93,6 +91,10 @@ class World extends PluginBase
 
         msg = new Packet msgPacket.separator, "room", ["IN", roomToJoin]
         connection.send msg
+        room = @worlds[currentWorld]["rooms"][roomToJoin]
+        msg = new Packet msgPacket.separator, "users", room.getUsers()
+        connection.send msg
+
 
     unregister: =>
         for world, rooms of @world
@@ -118,18 +120,26 @@ class Room
     join: (connection) =>
         console.log connection.getData("username"), "joining", @id
         @connections[connection.id] = connection
-        connection.on World.BROADCAST_TO_ROOM_EVENT+@id, @broadcast
+        connection.on Connection.PACKET_BROADCAST_EVENT, @broadcast
 
     leave: (connection) =>
         connection.removeListener World.BROADCAST_TO_ROOM_EVENT+@id, @broadcast
         console.log connection.getData("username"), "leaving", @id
         delete @connections[connection.id]
 
-    broadcast: (sourceConnection, sourcePacket) =>
+    broadcast: (sourceConnection, sourcePacket, args...) =>
+        return if sourceConnection.getData "room" != @id
         for id, connection of @connections
             # we don't want to echo back
             if sourceConnection.id.toString() isnt id.toString()
                 connection.send sourcePacket
+
+    getUsers: =>
+        users = new Array()
+        for id, connection of @connections
+            users.push connection.getData "username"
+        return users
+
 
     destroy: =>
         @connections = null

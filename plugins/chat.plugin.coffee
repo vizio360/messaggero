@@ -1,6 +1,5 @@
 PluginBase = require('../lib/plugin/plugin.base').PluginBase
 Packet = require('../net/connection/packet').Packet
-World = require('./world.plugin').Plugin
 
 class Chat extends PluginBase
 
@@ -25,7 +24,7 @@ class Chat extends PluginBase
         actualMessage = msgPacket.messageFragments[0]
         sourceUsername = connection.getData("username")
         msg = new Packet msgPacket.separator, "sez", [sourceUsername, actualMessage]
-        connection.emit World.BROADCAST_TO_ROOM_EVENT+currentRoom, connection, msg
+        connection.broadcast msg
 
 
 exports.Plugin = Chat

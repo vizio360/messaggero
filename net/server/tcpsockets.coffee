@@ -13,7 +13,7 @@ class TCPServer extends BaseServer
         @socket.write msg
 
     onConnectionEstablished: (socket) =>
-        socket.setEncoding 'utf8'
+        socket.setEncoding 'ascii'
         socket.id = @getUniqueID()
         
         currentConnection = new Connection(socket, {}, @writeMethod)
@@ -26,18 +26,21 @@ class TCPServer extends BaseServer
         socket.on 'end', =>
             console.log "server disconnected"
             connection = @getConnection socket.id
-            connection.disconnect()
             connection.removeAllListeners()
             @emit TCPServer.DISCONNECTION_EVENT, connection
             @removeConnection socket.id
-            socket.end()
 
         socket.on 'data', (data) =>
             console.log "data received", data
-            # removing \r\n character
-            data = data.substring(0, data.length-2) while (data.length > 1 and data.charAt(data.length-2) == '\r' and data.charAt(data.length-1) == '\n')
+            console.log data.indexOf("\r\n")
+            console.log data.indexOf("\r")
+            console.log data.indexOf("\n")
+            data = data.split "\r\n"
 
-            @emit TCPServer.DATA_EVENT, @getConnection(socket.id), data
+            for d in data
+                @emit TCPServer.DATA_EVENT, @getConnection(socket.id), d if d != ""
+
+
 
 
     startListening: =>
