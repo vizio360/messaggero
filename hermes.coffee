@@ -50,11 +50,11 @@ startApplication = (err, results)->
 async.series [loadPlugins, loadConfiguration], startApplication
 
 onNewConnection = (connection) ->
-    console.log "new connection", connection.id
-    #pm.onNewConnection connection
+    #console.log "new connection", connection.id
+    pm.onNewConnection connection
 
 onData = (connection, data) ->
-    console.log "data received from connection", connection.id
+    #console.log "data received from connection", connection.id
 
     separator = data.charAt(0)
     data = data.split separator
@@ -63,8 +63,10 @@ onData = (connection, data) ->
 
     msgPacket = new Packet separator, command, messageContent
 
-    pm.execute connection, msgPacket
+    process.nextTick =>
+        pm.execute connection, msgPacket
 
 
 onDisconnection = (connection) ->
-    console.log "connection ended", connection.id
+    #console.log "connection ended", connection.id
+    pm.onConnectionDisconnected connection
