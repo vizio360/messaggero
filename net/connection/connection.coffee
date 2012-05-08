@@ -20,8 +20,12 @@ class Connection extends EventEmitter
     removeData: (key) =>
         delete @data[key]
 
-    send: (messagePacket, send_crlf = true) =>
-        @writeMethod messagePacket.stringify(send_crlf)
+    send: (messagePacket) =>
+        # FIXME would it be better sending out an event
+        # which the server.base listens to when a 
+        # connection wants to send stuff? instead
+        # of passing a function in?
+        @writeMethod messagePacket.stringify()
         @emit Connection.PACKET_SENT_EVENT
         
     broadcast: (messagePacket, args...) =>
@@ -30,7 +34,7 @@ class Connection extends EventEmitter
     disconnect: () =>
         @socket.end("bye\r\n")
 
-    disconnecting: () =>
+    disconnected: () =>
         # all plugins need to listen to this event
         # and remove all their listeners
         @emit Connection.DISCONNECT_EVENT, @

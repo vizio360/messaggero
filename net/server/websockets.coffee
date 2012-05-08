@@ -3,6 +3,14 @@ WebSocketServer = require('websocket').server
 BaseServer = require('./server.base').BaseServer
 Connection = require('../connection/connection').Connection
 
+###
+# you need to install the websocket 1.0.4 npm package 
+# to be able to use this class
+#
+# I removed it from the package file because the npm
+# doesn't compile on windows machines.
+# Also the idea would be to switch to socket.io instead
+###
 class WSocketsServer extends BaseServer
 
     constructor: (@port) ->

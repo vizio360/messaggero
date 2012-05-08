@@ -46,15 +46,13 @@ startApplication = (err, results)->
     server.on Server.DISCONNECTION_EVENT, onDisconnection
     server.startListening()
     
-
+# loading plugins and configuration files before starting the app
 async.series [loadPlugins, loadConfiguration], startApplication
 
 onNewConnection = (connection) ->
-    #console.log "new connection", connection.id
-    pm.onNewConnection connection
+    pm.onNewConnection connection # on every new connection each plugin is notified
 
 onData = (connection, data) ->
-    #console.log "data received from connection", connection.id
 
     separator = data.charAt(0)
     data = data.split separator
@@ -62,11 +60,8 @@ onData = (connection, data) ->
     messageContent = data[2..]
 
     msgPacket = new Packet separator, command, messageContent
-
-    process.nextTick =>
-        pm.execute connection, msgPacket
+    pm.execute connection, msgPacket
 
 
 onDisconnection = (connection) ->
-    #console.log "connection ended", connection.id
-    pm.onConnectionDisconnected connection
+    pm.onConnectionDisconnected connection # on every lost connection each plugin is notified

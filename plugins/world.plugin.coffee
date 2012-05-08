@@ -131,9 +131,9 @@ class World extends PluginBase
             for room of @worlds[world]["rooms"]
                 console.log "room: "+room
                 count = 0
-                count += 1 for c in @worlds[world]["rooms"][room].connections
+                count += 1 for c of @worlds[world]["rooms"][room].connections
                 connids = ""
-                connids += c.id+"|" for c in  @worlds[world]["rooms"][room].connections
+                connids += cid+"|" for cid of  @worlds[world]["rooms"][room].connections
                 console.log "conn: "+count+" "+connids
 
 
@@ -152,11 +152,11 @@ class Room
     # connections: {}
 
     constructor: (@id) ->
-        @connections = new Array()
+        @connections = {}
 
     join: (connection) =>
         #console.log connection.getData("username"), "joining", @id
-        @connections.push connection
+        @connections[connection.id] =  connection
         connection.setData "room", @id
         connection.on Connection.PACKET_BROADCAST_EVENT, @broadcast
         connection.on Connection.DISCONNECT_EVENT, @removeConnection
@@ -167,10 +167,10 @@ class Room
 
     broadcast: (sourceConnection, sourcePacket, args...) =>
         return if sourceConnection.getData("room") isnt @id
-        for connection in @connections
+        for connection of @connections
             # we don't want to echo back
             if sourceConnection.id isnt connection.id
-                connection.send sourcePacket, false #don't send crlf
+                connection.send sourcePacket
 
     getUsers: =>
         users = new Array()
@@ -183,8 +183,7 @@ class Room
         connection.setData "room", ""
         connection.removeListener Connection.PACKET_BROADCAST_EVENT, @broadcast
         connection.removeListener Connection.DISCONNECT_EVENT, @removeConnection
-        index = @connections.indexOf connection
-        @connections[index..index] = []
+        delete @connections[connection.id]
 
     destroy: =>
         @connections = null

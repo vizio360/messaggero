@@ -1,0 +1,64 @@
+<!DOCTYPE html><html><head><title>admin.plugin.coffee</title><meta http-equiv="Content-Type" content="text/html" charset="UTF-8"><link rel="stylesheet" media="all" href="../../docco.css"></head><body><div id="container"><div id="background"></div><div id="jump_to">Jump To &hellip;<div id="jump_wrapper"><div id="jump_page"><a href="../../index.html" class="source"><span class="file_name">README</span></a><a href="../../hermes.coffee.html" class="source "><span class="base_path">. / </span><span class="file_name">hermes.coffee</span></a><a href="../../lib/plugin/admin.plugin.coffee.html" class="source selected"><span class="base_path">lib / plugin / </span><span class="file_name">admin.plugin.coffee</span></a><a href="../../lib/plugin/plugin.base.coffee.html" class="source "><span class="base_path">lib / plugin / </span><span class="file_name">plugin.base.coffee</span></a><a href="../../lib/plugin/plugin_manager.coffee.html" class="source "><span class="base_path">lib / plugin / </span><span class="file_name">plugin_manager.coffee</span></a><a href="../../net/connection/connection.coffee.html" class="source "><span class="base_path">net / connection / </span><span class="file_name">connection.coffee</span></a><a href="../../net/connection/packet.coffee.html" class="source "><span class="base_path">net / connection / </span><span class="file_name">packet.coffee</span></a><a href="../../net/server/server.base.coffee.html" class="source "><span class="base_path">net / server / </span><span class="file_name">server.base.coffee</span></a><a href="../../net/server/tcpsockets.coffee.html" class="source "><span class="base_path">net / server / </span><span class="file_name">tcpsockets.coffee</span></a><a href="../../net/server/websockets.coffee.html" class="source "><span class="base_path">net / server / </span><span class="file_name">websockets.coffee</span></a><a href="../../plugins/anonymous.login.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">anonymous.login.plugin.coffee</span></a><a href="../../plugins/chat.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">chat.plugin.coffee</span></a><a href="../../plugins/drawing.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">drawing.plugin.coffee</span></a><a href="../../plugins/echo.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">echo.plugin.coffee</span></a><a href="../../plugins/world.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">world.plugin.coffee</span></a></div></div></div><table cellpadding="0" cellspacing="0"><thead><tr><th class="docs"><h1>admin.plugin.coffee</h1><div class="filepath">lib/plugin/</div></th><th class="code"></th></tr></thead><tbody><tr id="section-1"><td class="docs"><div class="pilwrap"><a href="#section-1" class="pilcrow">&#182;</a></div>
+</td><td class="code"><div class="highlight"><pre><span class="nv">Connection = </span><span class="nx">require</span><span class="p">(</span><span class="s">&#39;../../net/connection/connection&#39;</span><span class="p">).</span><span class="nx">Connection</span>
+<span class="nv">Packet = </span><span class="nx">require</span><span class="p">(</span><span class="s">&#39;../../net/connection/packet&#39;</span><span class="p">).</span><span class="nx">Packet</span>
+<span class="nv">PluginBase = </span><span class="nx">require</span><span class="p">(</span><span class="s">&#39;./plugin.base&#39;</span><span class="p">).</span><span class="nx">PluginBase</span>
+
+<span class="k">class</span> <span class="nx">Plugin_Manager_Plugin</span> <span class="k">extends</span> <span class="nx">PluginBase</span>
+
+    <span class="nv">constructor: </span><span class="nf">(@plugin_manager) -&gt;</span>
+
+    <span class="nv">description: </span><span class="s">&quot;Admin&quot;</span>
+
+    <span class="nv">commands: </span><span class="o">=&gt;</span>
+        <span class="nv">plugin: </span><span class="nx">@plugin</span>
+
+    <span class="nv">execute: </span><span class="p">(</span><span class="nx">connection</span><span class="p">,</span> <span class="nx">msgPacket</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="k">super</span> <span class="nx">connection</span><span class="p">,</span> <span class="nx">msgPacket</span>
+
+
+    <span class="nv">plugin: </span><span class="p">(</span><span class="nx">connection</span><span class="p">,</span> <span class="nx">msgPacket</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nv">fragments = </span><span class="nx">msgPacket</span><span class="p">.</span><span class="nx">messageFragments</span>
+        <span class="k">if</span> <span class="nx">fragments</span><span class="p">.</span><span class="nx">length</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="nv">msg = </span><span class="k">new</span> <span class="nx">Packet</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">separator</span><span class="p">,</span> <span class="s">&quot;plugin&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;bad request&quot;</span><span class="p">]</span>
+            <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">msg</span>
+            <span class="k">return</span>
+
+        <span class="nv">subcommand = </span><span class="nx">msgPacket</span><span class="p">.</span><span class="nx">messageFragments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">switch</span> <span class="nx">subcommand</span>
+            <span class="k">when</span> <span class="s">&quot;load&quot;</span>
+                <span class="nv">plugin_name = </span><span class="nx">msgPacket</span><span class="p">.</span><span class="nx">messageFragments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="nv">result = </span><span class="nx">@plugin_manager</span><span class="p">.</span><span class="nx">registerByName</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">messageFragments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">if</span> <span class="o">not</span> <span class="nx">result</span>
+                    <span class="nv">msg = </span><span class="k">new</span> <span class="nx">Packet</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">separator</span><span class="p">,</span> <span class="s">&quot;plugin&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;no plugin named &quot;</span><span class="o">+</span><span class="nx">plugin_name</span><span class="p">]</span>
+                    <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">msg</span>
+
+            <span class="k">when</span> <span class="s">&quot;unload&quot;</span>
+                <span class="nv">plugin_name = </span><span class="nx">msgPacket</span><span class="p">.</span><span class="nx">messageFragments</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="nv">result = </span><span class="nx">@plugin_manager</span><span class="p">.</span><span class="nx">unregisterByName</span> <span class="nx">plugin_name</span>
+                <span class="k">if</span> <span class="o">not</span> <span class="nx">result</span>
+                    <span class="nv">msg = </span><span class="k">new</span> <span class="nx">Packet</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">separator</span><span class="p">,</span> <span class="s">&quot;plugin&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;no plugin named &quot;</span><span class="o">+</span><span class="nx">plugin_name</span><span class="p">]</span>
+                    <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">msg</span>
+
+            <span class="k">when</span> <span class="s">&quot;list&quot;</span>
+                <span class="nv">plugins = </span><span class="k">new</span> <span class="nb">Array</span><span class="p">()</span>
+                <span class="nx">plugins</span><span class="p">.</span><span class="nx">push</span> <span class="nx">plugin</span><span class="p">.</span><span class="nx">file_name</span> <span class="k">for</span> <span class="nx">plugin</span> <span class="k">in</span> <span class="nx">@plugin_manager</span><span class="p">.</span><span class="nx">pluginRegistered</span>
+                <span class="nv">msg = </span><span class="k">new</span> <span class="nx">Packet</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">separator</span><span class="p">,</span> <span class="s">&quot;plugin_registered&quot;</span><span class="p">,</span> <span class="nx">plugins</span>
+                <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">msg</span>
+            <span class="k">when</span> <span class="s">&quot;listcommands&quot;</span>
+                <span class="nv">plugins = </span><span class="k">new</span> <span class="nb">Array</span><span class="p">()</span>
+                <span class="k">for</span> <span class="nx">plugin</span> <span class="k">in</span> <span class="nx">@plugin_manager</span><span class="p">.</span><span class="nx">pluginRegistered</span>
+                    <span class="nv">str = </span><span class="nx">plugin</span><span class="p">.</span><span class="nx">file_name</span><span class="o">+</span><span class="s">&quot;@&quot;</span>
+                    <span class="k">for</span> <span class="nx">command</span> <span class="k">of</span> <span class="nx">plugin</span><span class="p">.</span><span class="nx">commands</span><span class="p">()</span>
+                        <span class="nx">str</span> <span class="o">+=</span> <span class="nx">command</span><span class="o">+</span><span class="s">&quot;|&quot;</span>
+                    <span class="nx">plugins</span><span class="p">.</span><span class="nx">push</span> <span class="nx">str</span>
+                <span class="nv">msg = </span><span class="k">new</span> <span class="nx">Packet</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">separator</span><span class="p">,</span> <span class="s">&quot;plugin_commands&quot;</span><span class="p">,</span> <span class="nx">plugins</span>
+                <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">msg</span>
+
+
+    </pre></div></td></tr><tr id="section-2"><td class="docs"><div class="pilwrap"><a href="#section-2" class="pilcrow">&#182;</a></div><p>notifications from plugin manager</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">onNewConnection: </span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span> <span class="o">=&gt;</span>
+
+    <span class="nv">onConnectionDisconnected: </span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span> <span class="o">=&gt;</span></pre></div></td></tr><tr id="section-3"><td class="docs"><div class="pilwrap"><a href="#section-3" class="pilcrow">&#182;</a></div><p>--</p>
+</td><td class="code"><div class="highlight"><pre><span class="nv">exports.Plugin = </span><span class="nx">Plugin_Manager_Plugin</span>
+
+</pre></div></td></tr></tbody></table><div id="generated">generated Wed May 09 2012 00:10:37 GMT+0100 (BST)  </div><div id="projectname"><a href="../../index.html">Hermes</a></div></div></body></html>
