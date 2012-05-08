@@ -12,7 +12,10 @@ class BaseServer extends EventEmitter
     getUniqueID: =>
         # FIXME create ids in a better way
         # maybe using the timestamp
+        id = "id-#{@count}"
         @count += 1
+        return id
+        
 
     constructor: ->
         @connections = {}

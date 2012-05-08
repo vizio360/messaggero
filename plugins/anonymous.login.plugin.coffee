@@ -27,7 +27,7 @@ class AnonymousLogin extends PluginBase
 
 
     logout: (connection, msgPacket) =>
-        console.log "logging out "+connection.getData "username"
+        #console.log "logging out "+connection.getData "username"
         connection.removeData "username"
         
 

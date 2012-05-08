@@ -1,0 +1,59 @@
+<!DOCTYPE html><html><head><title>tcpsockets.coffee</title><meta http-equiv="Content-Type" content="text/html" charset="UTF-8"><link rel="stylesheet" media="all" href="../../docco.css"></head><body><div id="container"><div id="background"></div><div id="jump_to">Jump To &hellip;<div id="jump_wrapper"><div id="jump_page"><a href="../../index.html" class="source"><span class="file_name">README</span></a><a href="../../hermes.coffee.html" class="source "><span class="base_path">. / </span><span class="file_name">hermes.coffee</span></a><a href="../../lib/plugin/admin.plugin.coffee.html" class="source "><span class="base_path">lib / plugin / </span><span class="file_name">admin.plugin.coffee</span></a><a href="../../lib/plugin/plugin.base.coffee.html" class="source "><span class="base_path">lib / plugin / </span><span class="file_name">plugin.base.coffee</span></a><a href="../../lib/plugin/plugin_manager.coffee.html" class="source "><span class="base_path">lib / plugin / </span><span class="file_name">plugin_manager.coffee</span></a><a href="../../net/connection/connection.coffee.html" class="source "><span class="base_path">net / connection / </span><span class="file_name">connection.coffee</span></a><a href="../../net/connection/packet.coffee.html" class="source "><span class="base_path">net / connection / </span><span class="file_name">packet.coffee</span></a><a href="../../net/server/server.base.coffee.html" class="source "><span class="base_path">net / server / </span><span class="file_name">server.base.coffee</span></a><a href="../../net/server/tcpsockets.coffee.html" class="source selected"><span class="base_path">net / server / </span><span class="file_name">tcpsockets.coffee</span></a><a href="../../net/server/websockets.coffee.html" class="source "><span class="base_path">net / server / </span><span class="file_name">websockets.coffee</span></a><a href="../../plugins/anonymous.login.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">anonymous.login.plugin.coffee</span></a><a href="../../plugins/chat.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">chat.plugin.coffee</span></a><a href="../../plugins/drawing.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">drawing.plugin.coffee</span></a><a href="../../plugins/echo.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">echo.plugin.coffee</span></a><a href="../../plugins/world.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">world.plugin.coffee</span></a></div></div></div><table cellpadding="0" cellspacing="0"><thead><tr><th class="docs"><h1>tcpsockets.coffee</h1><div class="filepath">net/server/</div></th><th class="code"></th></tr></thead><tbody><tr id="section-1"><td class="docs"><div class="pilwrap"><a href="#section-1" class="pilcrow">&#182;</a></div>
+</td><td class="code"><div class="highlight"><pre><span class="nv">net = </span><span class="nx">require</span> <span class="s">&#39;net&#39;</span>
+<span class="nv">BaseServer = </span><span class="nx">require</span><span class="p">(</span><span class="s">&#39;./server.base&#39;</span><span class="p">).</span><span class="nx">BaseServer</span>
+<span class="nv">Connection = </span><span class="nx">require</span><span class="p">(</span><span class="s">&#39;../connection/connection&#39;</span><span class="p">).</span><span class="nx">Connection</span>
+
+<span class="k">class</span> <span class="nx">TCPServer</span> <span class="k">extends</span> <span class="nx">BaseServer</span>
+
+    <span class="nv">constructor: </span><span class="nf">(@port) -&gt;</span>
+        <span class="vi">@server = </span><span class="nx">net</span><span class="p">.</span><span class="nx">createServer</span> <span class="nx">@onConnectionEstablished</span>
+        <span class="k">super</span>
+
+    <span class="nv">writeMethod: </span><span class="nf">(msg) -&gt;</span>
+        <span class="nx">@socket</span><span class="p">.</span><span class="nx">write</span> <span class="nx">msg</span>
+
+
+    <span class="nv">onConnectionEstablished: </span><span class="p">(</span><span class="nx">socket</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">socket</span><span class="p">.</span><span class="nx">setEncoding</span> <span class="s">&#39;utf8&#39;</span>
+        <span class="nv">socket.id = </span><span class="nx">@getUniqueID</span><span class="p">()</span>
+        
+        <span class="nv">currentConnection = </span><span class="k">new</span> <span class="nx">Connection</span><span class="p">(</span><span class="nx">socket</span><span class="p">,</span> <span class="p">{},</span> <span class="nx">@writeMethod</span><span class="p">)</span>
+        <span class="nx">@addConnection</span> <span class="nx">currentConnection</span>
+
+
+        <span class="nx">@emit</span> <span class="nx">TCPServer</span><span class="p">.</span><span class="nx">NEW_CONNECTION_EVENT</span><span class="p">,</span> <span class="nx">currentConnection</span>
+
+
+        <span class="nx">socket</span><span class="p">.</span><span class="kc">on</span> <span class="s">&#39;end&#39;</span><span class="p">,</span> <span class="o">=&gt;</span>
+
+
+        <span class="nx">socket</span><span class="p">.</span><span class="kc">on</span> <span class="s">&#39;data&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="nv">data = </span><span class="nx">data</span><span class="p">.</span><span class="nx">split</span> <span class="s">&quot;\r\n&quot;</span>
+
+            <span class="k">for</span> <span class="nx">d</span> <span class="k">in</span> <span class="nx">data</span>
+                <span class="nx">@emit</span> <span class="nx">TCPServer</span><span class="p">.</span><span class="nx">DATA_EVENT</span><span class="p">,</span> <span class="nx">@getConnection</span><span class="p">(</span><span class="nx">socket</span><span class="p">.</span><span class="nx">id</span><span class="p">),</span> <span class="nx">d</span> <span class="k">if</span> <span class="nx">d</span> <span class="o">!=</span> <span class="s">&quot;&quot;</span>
+
+        <span class="nx">socket</span><span class="p">.</span><span class="kc">on</span> <span class="s">&#39;error&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nx">exception</span><span class="p">)</span> <span class="o">=&gt;</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;socket.id &quot;</span><span class="o">+</span><span class="nx">socket</span><span class="p">.</span><span class="nx">id</span><span class="o">+</span><span class="s">&quot; error. exception = &quot;</span><span class="o">+</span><span class="nx">exception</span>
+
+        <span class="nx">socket</span><span class="p">.</span><span class="kc">on</span> <span class="s">&#39;close&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nx">had_error</span><span class="p">)</span> <span class="o">=&gt;</span>
+
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;socket::close an error occured&quot;</span> <span class="k">if</span> <span class="nx">had_error</span>
+            <span class="nx">@finalizeDisconnection</span> <span class="nx">socket</span><span class="p">.</span><span class="nx">id</span>
+            <span class="nx">socket</span><span class="p">.</span><span class="nx">removeAllListeners</span><span class="p">()</span>
+            
+
+    <span class="nv">finalizeDisconnection: </span><span class="p">(</span><span class="nx">id</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nv">connection = </span><span class="nx">@getConnection</span> <span class="nx">id</span>
+        <span class="nx">connection</span><span class="p">.</span><span class="nx">disconnected</span><span class="p">()</span>
+        <span class="nx">connection</span><span class="p">.</span><span class="nx">removeAllListeners</span><span class="p">()</span>
+        <span class="nx">@emit</span> <span class="nx">TCPServer</span><span class="p">.</span><span class="nx">DISCONNECTION_EVENT</span><span class="p">,</span> <span class="nx">connection</span>
+        <span class="nx">@removeConnection</span> <span class="nx">id</span>
+
+    <span class="nv">startListening: </span><span class="o">=&gt;</span>
+        <span class="nx">@server</span><span class="p">.</span><span class="nx">listen</span> <span class="nx">@port</span><span class="p">,</span> <span class="o">=&gt;</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;server started listening on port&quot;</span><span class="p">,</span> <span class="nx">@port</span>
+
+<span class="nv">exports.Server = </span><span class="nx">TCPServer</span>
+
+</pre></div></td></tr></tbody></table><div id="generated">generated Wed May 09 2012 00:10:39 GMT+0100 (BST)  </div><div id="projectname"><a href="../../index.html">Hermes</a></div></div></body></html>

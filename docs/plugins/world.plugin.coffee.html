@@ -1,0 +1,170 @@
+<!DOCTYPE html><html><head><title>world.plugin.coffee</title><meta http-equiv="Content-Type" content="text/html" charset="UTF-8"><link rel="stylesheet" media="all" href="../docco.css"></head><body><div id="container"><div id="background"></div><div id="jump_to">Jump To &hellip;<div id="jump_wrapper"><div id="jump_page"><a href="../index.html" class="source"><span class="file_name">README</span></a><a href="../hermes.coffee.html" class="source "><span class="base_path">. / </span><span class="file_name">hermes.coffee</span></a><a href="../lib/plugin/admin.plugin.coffee.html" class="source "><span class="base_path">lib / plugin / </span><span class="file_name">admin.plugin.coffee</span></a><a href="../lib/plugin/plugin.base.coffee.html" class="source "><span class="base_path">lib / plugin / </span><span class="file_name">plugin.base.coffee</span></a><a href="../lib/plugin/plugin_manager.coffee.html" class="source "><span class="base_path">lib / plugin / </span><span class="file_name">plugin_manager.coffee</span></a><a href="../net/connection/connection.coffee.html" class="source "><span class="base_path">net / connection / </span><span class="file_name">connection.coffee</span></a><a href="../net/connection/packet.coffee.html" class="source "><span class="base_path">net / connection / </span><span class="file_name">packet.coffee</span></a><a href="../net/server/server.base.coffee.html" class="source "><span class="base_path">net / server / </span><span class="file_name">server.base.coffee</span></a><a href="../net/server/tcpsockets.coffee.html" class="source "><span class="base_path">net / server / </span><span class="file_name">tcpsockets.coffee</span></a><a href="../net/server/websockets.coffee.html" class="source "><span class="base_path">net / server / </span><span class="file_name">websockets.coffee</span></a><a href="../plugins/anonymous.login.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">anonymous.login.plugin.coffee</span></a><a href="../plugins/chat.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">chat.plugin.coffee</span></a><a href="../plugins/drawing.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">drawing.plugin.coffee</span></a><a href="../plugins/echo.plugin.coffee.html" class="source "><span class="base_path">plugins / </span><span class="file_name">echo.plugin.coffee</span></a><a href="../plugins/world.plugin.coffee.html" class="source selected"><span class="base_path">plugins / </span><span class="file_name">world.plugin.coffee</span></a></div></div></div><table cellpadding="0" cellspacing="0"><thead><tr><th class="docs"><h1>world.plugin.coffee</h1><div class="filepath">plugins/</div></th><th class="code"></th></tr></thead><tbody><tr id="section-1"><td class="docs"><div class="pilwrap"><a href="#section-1" class="pilcrow">&#182;</a></div>
+</td><td class="code"><div class="highlight"><pre><span class="nv">PluginBase = </span><span class="nx">require</span><span class="p">(</span><span class="s">&#39;../lib/plugin/plugin.base&#39;</span><span class="p">).</span><span class="nx">PluginBase</span>
+<span class="nv">Packet = </span><span class="nx">require</span><span class="p">(</span><span class="s">&#39;../net/connection/packet&#39;</span><span class="p">).</span><span class="nx">Packet</span>
+<span class="nv">fs = </span><span class="nx">require</span> <span class="s">&#39;fs&#39;</span>
+<span class="nv">Connection = </span><span class="nx">require</span><span class="p">(</span><span class="s">&#39;../net/connection/connection&#39;</span><span class="p">).</span><span class="nx">Connection</span>
+
+
+<span class="k">class</span> <span class="nx">World</span> <span class="k">extends</span> <span class="nx">PluginBase</span>
+
+    <span class="nv">description: </span><span class="s">&quot;World&quot;</span>
+
+    <span class="nv">commands: </span><span class="o">=&gt;</span>
+        <span class="nv">world: </span><span class="nx">@world</span>
+        <span class="nv">join: </span><span class="nx">@join</span>
+        <span class="nv">listConnections: </span><span class="nx">@listConnections</span>
+        <span class="nv">leave: </span><span class="nx">@leave</span>
+
+
+    <span class="nv">constructor: </span><span class="o">-&gt;</span>
+        <span class="vi">@worlds = </span><span class="p">{}</span>
+        <span class="nx">fs</span><span class="p">.</span><span class="nx">readFile</span> <span class="s">&#39;./data/worlds.json&#39;</span><span class="p">,</span> <span class="s">&#39;utf8&#39;</span><span class="p">,</span> <span class="nx">@loadWorlds</span>
+        <span class="k">super</span>
+
+    <span class="nv">loadWorlds: </span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">data</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nv">worlds = </span><span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span> <span class="nx">data</span></pre></div></td></tr><tr id="section-2"><td class="docs"><div class="pilwrap"><a href="#section-2" class="pilcrow">&#182;</a></div><p>create each room</p>
+</td><td class="code"><div class="highlight"><pre>       
+        <span class="k">for</span> <span class="nx">world</span><span class="p">,</span> <span class="nx">rooms</span> <span class="k">of</span> <span class="nx">worlds</span>
+            <span class="nx">@worlds</span><span class="p">[</span><span class="nx">world</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="nx">@worlds</span><span class="p">[</span><span class="nx">world</span><span class="p">][</span><span class="s">&quot;rooms&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="nx">@worlds</span><span class="p">[</span><span class="nx">world</span><span class="p">][</span><span class="s">&quot;rooms&quot;</span><span class="p">][</span><span class="s">&quot;lobby&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Room</span><span class="p">(</span><span class="s">&quot;lobby&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="nx">room</span> <span class="k">in</span> <span class="nx">rooms</span>
+                <span class="nv">r = </span><span class="k">new</span> <span class="nx">Room</span><span class="p">(</span><span class="nx">room</span><span class="p">)</span>
+                <span class="nx">@worlds</span><span class="p">[</span><span class="nx">world</span><span class="p">][</span><span class="s">&quot;rooms&quot;</span><span class="p">][</span><span class="nx">room</span><span class="p">]</span> <span class="o">=</span> <span class="nx">r</span>
+
+
+    <span class="nv">execute: </span><span class="p">(</span><span class="nx">connection</span><span class="p">,</span> <span class="nx">msgPacket</span><span class="p">)</span> <span class="o">=&gt;</span></pre></div></td></tr><tr id="section-3"><td class="docs"><div class="pilwrap"><a href="#section-3" class="pilcrow">&#182;</a></div><p>users need to be logged in to be able to
+use the chat</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="k">if</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">command</span> <span class="o">!=</span> <span class="s">&quot;listConnections&quot;</span>
+            <span class="k">if</span> <span class="o">not</span> <span class="p">(</span><span class="nx">connection</span><span class="p">.</span><span class="nx">getData</span><span class="p">(</span><span class="s">&quot;username&quot;</span><span class="p">)</span><span class="o">?</span><span class="p">)</span></pre></div></td></tr><tr id="section-4"><td class="docs"><div class="pilwrap"><a href="#section-4" class="pilcrow">&#182;</a></div><p>console.log "not logged in"</p>
+</td><td class="code"><div class="highlight"><pre>                <span class="k">return</span>
+
+        <span class="k">super</span> <span class="nx">connection</span><span class="p">,</span> <span class="nx">msgPacket</span>
+
+
+    <span class="nv">world: </span><span class="p">(</span><span class="nx">connection</span><span class="p">,</span> <span class="nx">msgPacket</span><span class="p">)</span> <span class="o">=&gt;</span>
+        
+        <span class="k">if</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">messageFragments</span><span class="p">.</span><span class="nx">length</span> <span class="o">!=</span> <span class="mi">1</span>
+            <span class="nv">msg = </span><span class="k">new</span> <span class="nx">Packet</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">separator</span><span class="p">,</span> <span class="s">&quot;KO&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;bad request&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">msg</span>
+
+        <span class="nv">worldToJoin = </span><span class="nx">msgPacket</span><span class="p">.</span><span class="nx">messageFragments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="o">not</span> <span class="nx">@worlds</span><span class="p">[</span><span class="nx">worldToJoin</span><span class="p">]</span><span class="o">?</span>
+            <span class="nv">msg = </span><span class="k">new</span> <span class="nx">Packet</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">separator</span><span class="p">,</span> <span class="s">&quot;world&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;NO&quot;</span><span class="p">,</span><span class="nx">worldToJoin</span><span class="p">]</span>
+            <span class="k">return</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">msg</span></pre></div></td></tr><tr id="section-5"><td class="docs"><div class="pilwrap"><a href="#section-5" class="pilcrow">&#182;</a></div><p>automatically join the lobby</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="nx">connection</span><span class="p">.</span><span class="nx">setData</span> <span class="s">&quot;world&quot;</span><span class="p">,</span> <span class="nx">worldToJoin</span>
+        <span class="nx">connection</span><span class="p">.</span><span class="nx">setData</span> <span class="s">&quot;room&quot;</span><span class="p">,</span> <span class="s">&quot;lobby&quot;</span></pre></div></td></tr><tr id="section-6"><td class="docs"><div class="pilwrap"><a href="#section-6" class="pilcrow">&#182;</a></div><p>console.log "about to join lobby "+connection.id</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="nx">@worlds</span><span class="p">[</span><span class="nx">worldToJoin</span><span class="p">][</span><span class="s">&quot;rooms&quot;</span><span class="p">][</span><span class="s">&quot;lobby&quot;</span><span class="p">].</span><span class="nx">join</span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span>
+        <span class="nv">msg = </span><span class="k">new</span> <span class="nx">Packet</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">separator</span><span class="p">,</span> <span class="s">&quot;world&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;IN&quot;</span><span class="p">,</span> <span class="nx">worldToJoin</span><span class="p">]</span>
+        <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">msg</span>
+
+    <span class="nv">join: </span><span class="p">(</span><span class="nx">connection</span><span class="p">,</span> <span class="nx">msgPacket</span><span class="p">)</span> <span class="o">=&gt;</span>
+
+        <span class="k">if</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">messageFragments</span><span class="p">.</span><span class="nx">length</span> <span class="o">!=</span> <span class="mi">1</span>
+            <span class="nv">msg = </span><span class="k">new</span> <span class="nx">Packet</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">separator</span><span class="p">,</span> <span class="s">&quot;KO&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;bad request&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">msg</span>
+
+        <span class="nv">roomToJoin = </span><span class="nx">msgPacket</span><span class="p">.</span><span class="nx">messageFragments</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nv">currentWorld = </span><span class="nx">connection</span><span class="p">.</span><span class="nx">getData</span><span class="p">(</span><span class="s">&quot;world&quot;</span><span class="p">)</span>
+       
+        
+        <span class="k">if</span> <span class="o">not</span> <span class="p">(</span><span class="nx">currentWorld</span><span class="o">?</span><span class="p">)</span>
+            <span class="nv">msg = </span><span class="k">new</span> <span class="nx">Packet</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">separator</span><span class="p">,</span> <span class="s">&quot;KO&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;not in a world&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">msg</span>
+
+        <span class="nv">currentRoom = </span><span class="nx">connection</span><span class="p">.</span><span class="nx">getData</span><span class="p">(</span><span class="s">&quot;room&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="o">not</span> <span class="p">(</span><span class="nx">@worlds</span><span class="p">[</span><span class="nx">currentWorld</span><span class="p">][</span><span class="s">&quot;rooms&quot;</span><span class="p">][</span><span class="nx">roomToJoin</span><span class="p">]</span><span class="o">?</span><span class="p">)</span>
+            <span class="nv">msg = </span><span class="k">new</span> <span class="nx">Packet</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">separator</span><span class="p">,</span> <span class="s">&quot;room&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;NO&quot;</span><span class="p">,</span> <span class="nx">roomToJoin</span><span class="p">]</span>
+            <span class="k">return</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">msg</span>
+
+
+        <span class="nx">@worlds</span><span class="p">[</span><span class="nx">currentWorld</span><span class="p">][</span><span class="s">&quot;rooms&quot;</span><span class="p">][</span><span class="nx">currentRoom</span><span class="p">].</span><span class="nx">leave</span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span>
+
+
+        <span class="nx">process</span><span class="p">.</span><span class="nx">nextTick</span> <span class="o">=&gt;</span>
+            <span class="nv">msg = </span><span class="k">new</span> <span class="nx">Packet</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">separator</span><span class="p">,</span> <span class="s">&quot;room&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;IN&quot;</span><span class="p">,</span> <span class="nx">roomToJoin</span><span class="p">]</span>
+            <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">msg</span>
+
+            <span class="nx">process</span><span class="p">.</span><span class="nx">nextTick</span> <span class="o">=&gt;</span>
+                <span class="nx">@worlds</span><span class="p">[</span><span class="nx">currentWorld</span><span class="p">][</span><span class="s">&quot;rooms&quot;</span><span class="p">][</span><span class="nx">roomToJoin</span><span class="p">].</span><span class="nx">join</span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span></pre></div></td></tr><tr id="section-7"><td class="docs"><div class="pilwrap"><a href="#section-7" class="pilcrow">&#182;</a></div><p>room = @worlds[currentWorld]["rooms"][roomToJoin]</p>
+</td><td class="code"><div class="highlight"><pre></pre></div></td></tr><tr id="section-8"><td class="docs"><div class="pilwrap"><a href="#section-8" class="pilcrow">&#182;</a></div><p>msg = new Packet msgPacket.separator, "users", room.getUsers()
+connection.send msg</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">leave: </span><span class="p">(</span><span class="nx">connection</span><span class="p">,</span> <span class="nx">msgPacket</span><span class="p">)</span> <span class="o">=&gt;</span>
+        
+        <span class="nv">currentWorld = </span><span class="nx">connection</span><span class="p">.</span><span class="nx">getData</span><span class="p">(</span><span class="s">&quot;world&quot;</span><span class="p">)</span>
+        <span class="nv">currentRoom = </span><span class="nx">connection</span><span class="p">.</span><span class="nx">getData</span><span class="p">(</span><span class="s">&quot;room&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="k">if</span> <span class="o">not</span> <span class="nx">currentWorld</span><span class="o">?</span> <span class="o">or</span> <span class="o">not</span> <span class="nx">currentRoom</span><span class="o">?</span>
+        <span class="nx">@worlds</span><span class="p">[</span><span class="nx">currentWorld</span><span class="p">][</span><span class="s">&quot;rooms&quot;</span><span class="p">][</span><span class="nx">currentRoom</span><span class="p">].</span><span class="nx">leave</span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span>
+        <span class="nv">msg = </span><span class="k">new</span> <span class="nx">Packet</span> <span class="nx">msgPacket</span><span class="p">.</span><span class="nx">separator</span><span class="p">,</span> <span class="s">&quot;room&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s">&quot;OUT&quot;</span><span class="p">,</span> <span class="nx">currentRoom</span><span class="p">]</span>
+        <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">msg</span>
+
+
+
+
+    <span class="nv">unregister: </span><span class="o">=&gt;</span></pre></div></td></tr><tr id="section-9"><td class="docs"><div class="pilwrap"><a href="#section-9" class="pilcrow">&#182;</a></div><p>FIXME the following is completely wrong</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="k">for</span> <span class="nx">world</span><span class="p">,</span> <span class="nx">rooms</span> <span class="k">of</span> <span class="nx">@worlds</span>
+            <span class="k">for</span> <span class="nx">room</span> <span class="k">of</span> <span class="nx">rooms</span>
+                <span class="nx">room</span><span class="p">.</span><span class="nx">destroy</span><span class="p">()</span>
+
+
+    
+    <span class="nv">listConnections: </span><span class="p">(</span><span class="nx">connection</span><span class="p">,</span> <span class="nx">msgPacket</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;listConnections&quot;</span>
+        <span class="k">for</span> <span class="nx">world</span> <span class="k">of</span> <span class="nx">@worlds</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;world: &quot;</span><span class="o">+</span><span class="nx">world</span>
+            <span class="k">for</span> <span class="nx">room</span> <span class="k">of</span> <span class="nx">@worlds</span><span class="p">[</span><span class="nx">world</span><span class="p">][</span><span class="s">&quot;rooms&quot;</span><span class="p">]</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;room: &quot;</span><span class="o">+</span><span class="nx">room</span>
+                <span class="nv">count = </span><span class="mi">0</span>
+                <span class="nx">count</span> <span class="o">+=</span> <span class="mi">1</span> <span class="k">for</span> <span class="nx">c</span> <span class="k">of</span> <span class="nx">@worlds</span><span class="p">[</span><span class="nx">world</span><span class="p">][</span><span class="s">&quot;rooms&quot;</span><span class="p">][</span><span class="nx">room</span><span class="p">].</span><span class="nx">connections</span>
+                <span class="nv">connids = </span><span class="s">&quot;&quot;</span>
+                <span class="nx">connids</span> <span class="o">+=</span> <span class="nx">cid</span><span class="o">+</span><span class="s">&quot;|&quot;</span> <span class="k">for</span> <span class="nx">cid</span> <span class="k">of</span>  <span class="nx">@worlds</span><span class="p">[</span><span class="nx">world</span><span class="p">][</span><span class="s">&quot;rooms&quot;</span><span class="p">][</span><span class="nx">room</span><span class="p">].</span><span class="nx">connections</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">log</span> <span class="s">&quot;conn: &quot;</span><span class="o">+</span><span class="nx">count</span><span class="o">+</span><span class="s">&quot; &quot;</span><span class="o">+</span><span class="nx">connids</span>
+
+
+    <span class="nv">onConnectionDisconnected: </span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span> <span class="o">=&gt;</span>
+
+
+
+<span class="nv">exports.Plugin = </span><span class="nx">World</span>
+
+
+
+<span class="k">class</span> <span class="nx">Room</span></pre></div></td></tr><tr id="section-10"><td class="docs"><div class="pilwrap"><a href="#section-10" class="pilcrow">&#182;</a></div><p>if I declare this varialbe here it behaves like
+it's a static one... no idea why
+connections: {}</p>
+</td><td class="code"><div class="highlight"><pre>    <span class="nv">constructor: </span><span class="nf">(@id) -&gt;</span>
+        <span class="vi">@connections = </span><span class="p">{}</span>
+
+    <span class="nv">join: </span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span> <span class="o">=&gt;</span></pre></div></td></tr><tr id="section-11"><td class="docs"><div class="pilwrap"><a href="#section-11" class="pilcrow">&#182;</a></div><p>console.log connection.getData("username"), "joining", @id</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="nx">@connections</span><span class="p">[</span><span class="nx">connection</span><span class="p">.</span><span class="nx">id</span><span class="p">]</span> <span class="o">=</span>  <span class="nx">connection</span>
+        <span class="nx">connection</span><span class="p">.</span><span class="nx">setData</span> <span class="s">&quot;room&quot;</span><span class="p">,</span> <span class="nx">@id</span>
+        <span class="nx">connection</span><span class="p">.</span><span class="kc">on</span> <span class="nx">Connection</span><span class="p">.</span><span class="nx">PACKET_BROADCAST_EVENT</span><span class="p">,</span> <span class="nx">@broadcast</span>
+        <span class="nx">connection</span><span class="p">.</span><span class="kc">on</span> <span class="nx">Connection</span><span class="p">.</span><span class="nx">DISCONNECT_EVENT</span><span class="p">,</span> <span class="nx">@removeConnection</span>
+
+    <span class="nv">leave: </span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span> <span class="o">=&gt;</span></pre></div></td></tr><tr id="section-12"><td class="docs"><div class="pilwrap"><a href="#section-12" class="pilcrow">&#182;</a></div><p>console.log connection.getData("username"), "leaving", @id</p>
+</td><td class="code"><div class="highlight"><pre>        <span class="nx">@removeConnection</span> <span class="nx">connection</span>
+
+    <span class="nv">broadcast: </span><span class="p">(</span><span class="nx">sourceConnection</span><span class="p">,</span> <span class="nx">sourcePacket</span><span class="p">,</span> <span class="nx">args</span><span class="p">...)</span> <span class="o">=&gt;</span>
+        <span class="k">return</span> <span class="k">if</span> <span class="nx">sourceConnection</span><span class="p">.</span><span class="nx">getData</span><span class="p">(</span><span class="s">&quot;room&quot;</span><span class="p">)</span> <span class="o">isnt</span> <span class="nx">@id</span>
+        <span class="k">for</span> <span class="nx">connection</span> <span class="k">of</span> <span class="nx">@connections</span></pre></div></td></tr><tr id="section-13"><td class="docs"><div class="pilwrap"><a href="#section-13" class="pilcrow">&#182;</a></div><p>we don't want to echo back</p>
+</td><td class="code"><div class="highlight"><pre>            <span class="k">if</span> <span class="nx">sourceConnection</span><span class="p">.</span><span class="nx">id</span> <span class="o">isnt</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">id</span>
+                <span class="nx">connection</span><span class="p">.</span><span class="nx">send</span> <span class="nx">sourcePacket</span><span class="p">,</span> <span class="kc">false</span> <span class="c1">#don&#39;t send crlf</span>
+
+    <span class="nv">getUsers: </span><span class="o">=&gt;</span>
+        <span class="nv">users = </span><span class="k">new</span> <span class="nb">Array</span><span class="p">()</span>
+        <span class="k">for</span> <span class="nx">connection</span> <span class="k">in</span> <span class="nx">@connections</span>
+            <span class="nx">users</span><span class="p">.</span><span class="nx">push</span> <span class="nx">connection</span><span class="p">.</span><span class="nx">getData</span> <span class="s">&quot;username&quot;</span>
+        <span class="k">return</span> <span class="nx">users</span>
+
+
+    <span class="nv">removeConnection: </span><span class="p">(</span><span class="nx">connection</span><span class="p">)</span> <span class="o">=&gt;</span>
+        <span class="nx">connection</span><span class="p">.</span><span class="nx">setData</span> <span class="s">&quot;room&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span>
+        <span class="nx">connection</span><span class="p">.</span><span class="nx">removeListener</span> <span class="nx">Connection</span><span class="p">.</span><span class="nx">PACKET_BROADCAST_EVENT</span><span class="p">,</span> <span class="nx">@broadcast</span>
+        <span class="nx">connection</span><span class="p">.</span><span class="nx">removeListener</span> <span class="nx">Connection</span><span class="p">.</span><span class="nx">DISCONNECT_EVENT</span><span class="p">,</span> <span class="nx">@removeConnection</span>
+        <span class="k">delete</span> <span class="nx">@connections</span><span class="p">[</span><span class="nx">connection</span><span class="p">.</span><span class="nx">id</span><span class="p">]</span>
+
+    <span class="nv">destroy: </span><span class="o">=&gt;</span>
+        <span class="vi">@connections = </span><span class="kc">null</span>
+
+</pre></div></td></tr></tbody></table><div id="generated">generated Wed May 09 2012 00:10:40 GMT+0100 (BST)  </div><div id="projectname"><a href="../index.html">Hermes</a></div></div></body></html>

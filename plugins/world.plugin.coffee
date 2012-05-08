@@ -6,13 +6,14 @@ Connection = require('../net/connection/connection').Connection
 
 class World extends PluginBase
 
-    @BROADCAST_TO_ROOM_EVENT: "World::BROADCAST_TO_ROOM::"
-
     description: "World"
 
     commands: =>
-        world: @world,
+        world: @world
         join: @join
+        listConnections: @listConnections
+        leave: @leave
+
 
     constructor: ->
         @worlds = {}
@@ -36,9 +37,10 @@ class World extends PluginBase
 
         # users need to be logged in to be able to
         # use the chat
-        if not (connection.getData("username")?)
-            console.log "not logged in"
-            return
+        if msgPacket.command != "listConnections"
+            if not (connection.getData("username")?)
+                #console.log "not logged in"
+                return
 
         super connection, msgPacket
 
@@ -59,7 +61,7 @@ class World extends PluginBase
         connection.setData "world", worldToJoin
         connection.setData "room", "lobby"
 
-        console.log "about to join lobby "+connection.id
+        #console.log "about to join lobby "+connection.id
         @worlds[worldToJoin]["rooms"]["lobby"].join(connection)
         msg = new Packet msgPacket.separator, "world", ["IN", worldToJoin]
         connection.send msg
@@ -87,18 +89,55 @@ class World extends PluginBase
 
         @worlds[currentWorld]["rooms"][currentRoom].leave(connection)
 
-        @worlds[currentWorld]["rooms"][roomToJoin].join(connection)
 
-        connection.setData "room", roomToJoin
+        process.nextTick =>
+            msg = new Packet msgPacket.separator, "room", ["IN", roomToJoin]
+            connection.send msg
 
-        msg = new Packet msgPacket.separator, "room", ["IN", roomToJoin]
+            process.nextTick =>
+                @worlds[currentWorld]["rooms"][roomToJoin].join(connection)
+
+
+        #room = @worlds[currentWorld]["rooms"][roomToJoin]
+
+        #msg = new Packet msgPacket.separator, "users", room.getUsers()
+        #connection.send msg
+
+
+    leave: (connection, msgPacket) =>
+        
+        currentWorld = connection.getData("world")
+        currentRoom = connection.getData("room")
+        return if not currentWorld? or not currentRoom?
+        @worlds[currentWorld]["rooms"][currentRoom].leave(connection)
+        msg = new Packet msgPacket.separator, "room", ["OUT", currentRoom]
         connection.send msg
 
+
+
+
     unregister: =>
-        for world, rooms of @world
+        # FIXME the following is completely wrong
+        for world, rooms of @worlds
             for room of rooms
                 room.destroy()
 
+
+    
+    listConnections: (connection, msgPacket) =>
+        console.log "listConnections"
+        for world of @worlds
+            console.log "world: "+world
+            for room of @worlds[world]["rooms"]
+                console.log "room: "+room
+                count = 0
+                count += 1 for c of @worlds[world]["rooms"][room].connections
+                connids = ""
+                connids += cid+"|" for cid of  @worlds[world]["rooms"][room].connections
+                console.log "conn: "+count+" "+connids
+
+
+    onConnectionDisconnected: (connection) =>
 
 
 
@@ -116,20 +155,35 @@ class Room
         @connections = {}
 
     join: (connection) =>
-        console.log connection.getData("username"), "joining", @id
-        @connections[connection.id] = connection
-        connection.on World.BROADCAST_TO_ROOM_EVENT+@id, @broadcast
+        #console.log connection.getData("username"), "joining", @id
+        @connections[connection.id] =  connection
+        connection.setData "room", @id
+        connection.on Connection.PACKET_BROADCAST_EVENT, @broadcast
+        connection.on Connection.DISCONNECT_EVENT, @removeConnection
 
     leave: (connection) =>
-        connection.removeListener World.BROADCAST_TO_ROOM_EVENT+@id, @broadcast
-        console.log connection.getData("username"), "leaving", @id
-        delete @connections[connection.id]
+        #console.log connection.getData("username"), "leaving", @id
+        @removeConnection connection
 
-    broadcast: (sourceConnection, sourcePacket) =>
-        for id, connection of @connections
+    broadcast: (sourceConnection, sourcePacket, args...) =>
+        return if sourceConnection.getData("room") isnt @id
+        for connection of @connections
             # we don't want to echo back
-            if sourceConnection.id.toString() isnt id.toString()
+            if sourceConnection.id isnt connection.id
                 connection.send sourcePacket
+
+    getUsers: =>
+        users = new Array()
+        for connection in @connections
+            users.push connection.getData "username"
+        return users
+
+
+    removeConnection: (connection) =>
+        connection.setData "room", ""
+        connection.removeListener Connection.PACKET_BROADCAST_EVENT, @broadcast
+        connection.removeListener Connection.DISCONNECT_EVENT, @removeConnection
+        delete @connections[connection.id]
 
     destroy: =>
         @connections = null

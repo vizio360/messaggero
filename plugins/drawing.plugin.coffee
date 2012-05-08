@@ -1,5 +1,4 @@
 PluginBase = require('../lib/plugin/plugin.base').PluginBase
-World = require('./world.plugin').Plugin
 
 class Drawing extends PluginBase
 
@@ -21,7 +20,7 @@ class Drawing extends PluginBase
     draw: (connection, msgPacket) =>
         currentRoom = connection.getData "room"
         return if not(currentRoom?)
-        connection.emit World.BROADCAST_TO_ROOM_EVENT+currentRoom, connection, msgPacket
+        connection.broadcast msgPacket
 
 
 exports.Plugin = Drawing
