@@ -167,9 +167,9 @@ class Room
 
     broadcast: (sourceConnection, sourcePacket, args...) =>
         return if sourceConnection.getData("room") isnt @id
-        for connection of @connections
+        for id, connection of @connections
             # we don't want to echo back
-            if sourceConnection.id isnt connection.id
+            if sourceConnection.id isnt id
                 connection.send sourcePacket
 
     getUsers: =>

@@ -17,8 +17,8 @@
           <boolProp name="LoopController.continue_forever">false</boolProp>
           <stringProp name="LoopController.loops">1</stringProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">100</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">20</stringProp>
+        <stringProp name="ThreadGroup.num_threads">5000</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">200</stringProp>
         <longProp name="ThreadGroup.start_time">1336134480000</longProp>
         <longProp name="ThreadGroup.end_time">1336134480000</longProp>
         <boolProp name="ThreadGroup.scheduler">false</boolProp>
@@ -26,8 +26,8 @@
         <stringProp name="ThreadGroup.delay"></stringProp>
       </ThreadGroup>
       <hashTree>
-        <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="Counter" enabled="true">
-          <stringProp name="CounterConfig.start">0</stringProp>
+        <CounterConfig guiclass="CounterConfigGui" testclass="CounterConfig" testname="UserId Counter" enabled="true">
+          <stringProp name="CounterConfig.start">1</stringProp>
           <stringProp name="CounterConfig.end"></stringProp>
           <stringProp name="CounterConfig.incr">1</stringProp>
           <stringProp name="CounterConfig.name">userid</stringProp>
@@ -54,6 +54,18 @@
             </elementProp>
           </collectionProp>
         </Arguments>
+        <hashTree/>
+        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="calculate in which room to go" enabled="true">
+          <collectionProp name="UserParameters.names">
+            <stringProp name="-925318346">roomid</stringProp>
+          </collectionProp>
+          <collectionProp name="UserParameters.thread_values">
+            <collectionProp name="-1151536817">
+              <stringProp name="1544067536">${__javaScript(Math.floor(${userid}/40) + 1)}</stringProp>
+            </collectionProp>
+          </collectionProp>
+          <boolProp name="UserParameters.per_iteration">false</boolProp>
+        </UserParameters>
         <hashTree/>
         <TCPSampler guiclass="TCPSamplerGui" testclass="TCPSampler" testname="login" enabled="true">
           <stringProp name="TCPSampler.server"></stringProp>
@@ -87,14 +99,14 @@
           <stringProp name="TCPSampler.port"></stringProp>
           <boolProp name="TCPSampler.nodelay">false</boolProp>
           <stringProp name="TCPSampler.timeout"></stringProp>
-          <stringProp name="TCPSampler.request">/world/picto${CRLF}</stringProp>
+          <stringProp name="TCPSampler.request">/world/world2${CRLF}</stringProp>
           <stringProp name="ConfigTestElement.username"></stringProp>
           <stringProp name="ConfigTestElement.password"></stringProp>
         </TCPSampler>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
             <collectionProp name="Asserion.test_strings">
-              <stringProp name="255839030">/world/IN/picto${CRLF}</stringProp>
+              <stringProp name="1467216511">/world/IN/world2${CRLF}</stringProp>
             </collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
             <boolProp name="Assertion.assume_success">false</boolProp>
@@ -108,21 +120,21 @@
           <stringProp name="TCPSampler.port"></stringProp>
           <boolProp name="TCPSampler.nodelay">false</boolProp>
           <stringProp name="TCPSampler.timeout"></stringProp>
-          <stringProp name="TCPSampler.request">/join/main${CRLF}</stringProp>
+          <stringProp name="TCPSampler.request">/join/2r${roomid}${CRLF}</stringProp>
           <stringProp name="ConfigTestElement.username"></stringProp>
           <stringProp name="ConfigTestElement.password"></stringProp>
         </TCPSampler>
         <hashTree>
           <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
             <collectionProp name="Asserion.test_strings">
-              <stringProp name="130795103">/room/IN/main${CRLF}</stringProp>
+              <stringProp name="824021138">/room/IN/2r${roomid}${CRLF}</stringProp>
             </collectionProp>
             <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
             <boolProp name="Assertion.assume_success">false</boolProp>
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>
-          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="false">
+          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
             <boolProp name="ResultCollector.error_logging">false</boolProp>
             <objProp>
               <name>saveConfig</name>
@@ -161,10 +173,10 @@
         <hashTree/>
         <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">true</boolProp>
-          <stringProp name="LoopController.loops">15</stringProp>
+          <intProp name="LoopController.loops">-1</intProp>
         </LoopController>
         <hashTree>
-          <TCPSampler guiclass="TCPSamplerGui" testclass="TCPSampler" testname="broadcast" enabled="false">
+          <TCPSampler guiclass="TCPSamplerGui" testclass="TCPSampler" testname="broadcast" enabled="true">
             <stringProp name="TCPSampler.server"></stringProp>
             <boolProp name="TCPSampler.reUseConnection">true</boolProp>
             <stringProp name="TCPSampler.port"></stringProp>
@@ -217,7 +229,7 @@
             </ResultCollector>
             <hashTree/>
           </hashTree>
-          <TCPSampler guiclass="TCPSamplerGui" testclass="TCPSampler" testname="echo" enabled="true">
+          <TCPSampler guiclass="TCPSamplerGui" testclass="TCPSampler" testname="echo" enabled="false">
             <stringProp name="TestPlan.comments">this is to force the creation of a new connection before the next  main loop starts</stringProp>
             <stringProp name="TCPSampler.server"></stringProp>
             <boolProp name="TCPSampler.reUseConnection">true</boolProp>
@@ -305,7 +317,7 @@
           </hashTree>
           <GaussianRandomTimer guiclass="GaussianRandomTimerGui" testclass="GaussianRandomTimer" testname="Gaussian Random Timer" enabled="true">
             <stringProp name="ConstantTimer.delay">2000</stringProp>
-            <stringProp name="RandomTimer.range">4000.0</stringProp>
+            <stringProp name="RandomTimer.range">2000.0</stringProp>
           </GaussianRandomTimer>
           <hashTree/>
         </hashTree>
@@ -324,7 +336,7 @@
           <stringProp name="ConfigTestElement.password"></stringProp>
         </TCPSampler>
         <hashTree>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="false">
             <collectionProp name="Asserion.test_strings">
               <stringProp name="-1267058370">/room/OUT/main${CRLF}</stringProp>
             </collectionProp>
@@ -333,7 +345,7 @@
             <intProp name="Assertion.test_type">2</intProp>
           </ResponseAssertion>
           <hashTree/>
-          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+          <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="false">
             <boolProp name="ResultCollector.error_logging">false</boolProp>
             <objProp>
               <name>saveConfig</name>
@@ -366,8 +378,8 @@
           </ResultCollector>
           <hashTree/>
         </hashTree>
-        <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="false">
-          <stringProp name="ConstantTimer.delay">300</stringProp>
+        <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer" enabled="true">
+          <stringProp name="ConstantTimer.delay">1000</stringProp>
         </ConstantTimer>
         <hashTree/>
         <TCPSampler guiclass="TCPSamplerGui" testclass="TCPSampler" testname="quit" enabled="true">
