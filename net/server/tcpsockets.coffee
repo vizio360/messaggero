@@ -26,7 +26,7 @@ class TCPServer extends BaseServer
 
         socket.setTimeout 60000, =>
             console.log "connection timed out "+socket.id
-            @finalizeDisconnection connection.id
+            @finalizeDisconnection socket.id
 
         socket.on 'end', =>
             console.log "connection ended"
