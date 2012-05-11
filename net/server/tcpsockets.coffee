@@ -5,7 +5,7 @@ Connection = require('../connection/connection').Connection
 
 class TCPServer extends BaseServer
 
-    constructor: (@port) ->
+    constructor: (@port, @socketIdleTimeout = 60000) ->
         @server = net.createServer {allowHalfOpen:false}, @onConnectionEstablished
         super
 
@@ -21,11 +21,18 @@ class TCPServer extends BaseServer
 
         @emit TCPServer.NEW_CONNECTION_EVENT, currentConnection
 
-        socket.setTimeout 60000, =>
+        # handling socket idle timeout
+        socket.setTimeout @socketIdleTimeout , =>
             winston.info "connection timed out "+socket.id
-            @finalizeDisconnection socket.id
+            connection = @getConnection socket.id
+            if connection?
+                connection.disconnect()
+            else
+                socket.destroy()
+
 
         socket.on 'end', =>
+            # the close event will be called after this one
             winston.info "connection #{socket.id} ended"
 
         socket.on 'data', (data) =>
@@ -35,22 +42,28 @@ class TCPServer extends BaseServer
                 @emit TCPServer.DATA_EVENT, @getConnection(socket.id), d if d != ""
 
         socket.on 'error', (exception) =>
-            # the close vent will be called after this one
+            # the close event will be called after this one
             winston.log 'error', "socket.id "+socket.id+" error. exception = "+exception
-            socket.destroy()
 
         socket.on 'close', (had_error) =>
             winston.info "connection #{socket.id} closed"
             winston.info "socket::close an error occured "+socket.id if had_error
-            @finalizeDisconnection socket.id
+            @finalizeDisconnection socket
             
 
-    finalizeDisconnection: (id) =>
+    finalizeDisconnection: (socket) =>
+        id = socket.id
+        # stop socket timeout
+        socket.setTimeout 0
         connection = @getConnection id
-        connection.disconnected()
-        connection.removeAllListeners()
-        @emit TCPServer.DISCONNECTION_EVENT, connection
-        @removeConnection id
+        if not connection?
+            winston.info "trying to finilize a connection no longer alive"
+        else
+            connection.disconnected()
+            connection.removeAllListeners()
+            @emit TCPServer.DISCONNECTION_EVENT, connection
+            @removeConnection id
+        socket.destroy()
 
     startListening: =>
         @server.listen @port, =>
