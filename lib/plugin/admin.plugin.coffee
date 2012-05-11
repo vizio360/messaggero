@@ -10,6 +10,7 @@ class Plugin_Manager_Plugin extends PluginBase
 
     commands: =>
         plugin: @plugin
+        shutdown: @shutdown
 
     execute: (connection, msgPacket) =>
         super connection, msgPacket
@@ -54,6 +55,10 @@ class Plugin_Manager_Plugin extends PluginBase
                 connection.send msg
 
 
+    shutdown: (connection, msgPacket) =>
+        # FIXME should actually send an event to all plugin to shutdown before 
+        # exiting the process
+        process.exit(0)
     
     #notifications from plugin manager
     onNewConnection: (connection) =>

@@ -8,7 +8,6 @@ class Connection extends EventEmitter
 
     constructor: (@socket, @data={}, @writeMethod) ->
         super
-        @socket.closed = false
         @id = @socket.id
 
 
@@ -38,7 +37,6 @@ class Connection extends EventEmitter
     disconnected: () =>
         # all plugins need to listen to this event
         # and remove all their listeners
-        @socket.closed = true
         @emit Connection.DISCONNECT_EVENT, @
 
 

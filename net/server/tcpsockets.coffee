@@ -14,6 +14,7 @@ class TCPServer extends BaseServer
     onConnectionEstablished: (socket) =>
         socket.setEncoding 'utf8'
         socket.id = @getUniqueID()
+        socket.closed = false
 
 
         
@@ -30,6 +31,7 @@ class TCPServer extends BaseServer
 
         socket.on 'end', =>
             console.log "connection ended"
+            socket.closed = true
 
 
         socket.on 'data', (data) =>
@@ -39,11 +41,12 @@ class TCPServer extends BaseServer
                 @emit TCPServer.DATA_EVENT, @getConnection(socket.id), d if d != ""
 
         socket.on 'error', (exception) =>
+            socket.closed = true
             # the close vent will be called after this one
             console.log "socket.id "+socket.id+" error. exception = "+exception
 
         socket.on 'close', (had_error) =>
-
+            socket.closed = true
             console.log "connection #{socket.id} closed"
             console.log "socket::close an error occured "+socket.id if had_error
             @finalizeDisconnection socket.id
