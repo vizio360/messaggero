@@ -5,16 +5,23 @@ Connection = require('../connection/connection').Connection
 class TCPServer extends BaseServer
 
     constructor: (@port) ->
-        @server = net.createServer @onConnectionEstablished
+        @server = net.createServer {allowHalfOpen:false}, @onConnectionEstablished
         super
 
-    writeMethod: (msg) ->
-        @socket.write msg
-
+    writeMethod: (connection, msg) =>
+        try
+            connection.socket.write msg
+            console.log "written to "+connection.id
+        catch err
+            console.log "cannot write to socket "+connection.id
+            console.log "maybe disconnected"
+            @finalizeDisconnection connection.id
 
     onConnectionEstablished: (socket) =>
         socket.setEncoding 'utf8'
         socket.id = @getUniqueID()
+
+
         
         currentConnection = new Connection(socket, {}, @writeMethod)
         @addConnection currentConnection
@@ -23,7 +30,12 @@ class TCPServer extends BaseServer
         @emit TCPServer.NEW_CONNECTION_EVENT, currentConnection
 
 
+        socket.setTimeout 60000, =>
+            console.log "connection timed out "+socket.id
+            @finalizeDisconnection connection.id
+
         socket.on 'end', =>
+            console.log "connection ended"
 
 
         socket.on 'data', (data) =>
@@ -37,6 +49,7 @@ class TCPServer extends BaseServer
 
         socket.on 'close', (had_error) =>
 
+            console.log "connection closed"
             console.log "socket::close an error occured" if had_error
             @finalizeDisconnection socket.id
             socket.removeAllListeners()

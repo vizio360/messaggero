@@ -25,7 +25,7 @@ class Connection extends EventEmitter
         # which the server.base listens to when a 
         # connection wants to send stuff? instead
         # of passing a function in?
-        @writeMethod messagePacket.stringify()
+        @writeMethod @, messagePacket.stringify()
         @emit Connection.PACKET_SENT_EVENT
         
     broadcast: (messagePacket, args...) =>

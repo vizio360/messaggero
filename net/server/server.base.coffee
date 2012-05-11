@@ -19,6 +19,7 @@ class BaseServer extends EventEmitter
 
     constructor: ->
         @connections = {}
+        
 
     addConnection: (connection) =>
         @connections[connection.id] = connection
@@ -31,12 +32,11 @@ class BaseServer extends EventEmitter
         delete @connections[id]
 
 
-
     onConnectionEstablished: (socket) =>
         throw Error ("Need to override BaseServer::onConnectionEstablished")
 
 
-    writeMethod: (msg) ->
+    writeMethod: (msg) =>
         throw Error ("Need to override BaseServer::writeMethod")
 
     startListening: =>
