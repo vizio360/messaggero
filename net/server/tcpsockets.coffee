@@ -9,13 +9,7 @@ class TCPServer extends BaseServer
         super
 
     writeMethod: (connection, msg) =>
-        try
             connection.socket.write msg
-            console.log "written to "+connection.id
-        catch err
-            console.log "cannot write to socket "+connection.id
-            console.log "maybe disconnected"
-            @finalizeDisconnection connection.id
 
     onConnectionEstablished: (socket) =>
         socket.setEncoding 'utf8'
@@ -46,6 +40,7 @@ class TCPServer extends BaseServer
 
         socket.on 'error', (exception) =>
             console.log "socket.id "+socket.id+" error. exception = "+exception
+            @finalizeDisconnection socket.id
 
         socket.on 'close', (had_error) =>
 
@@ -57,6 +52,7 @@ class TCPServer extends BaseServer
 
     finalizeDisconnection: (id) =>
         connection = @getConnection id
+        connection.socket.destroy()
         connection.disconnected()
         connection.removeAllListeners()
         @emit TCPServer.DISCONNECTION_EVENT, connection
