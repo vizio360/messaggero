@@ -39,8 +39,8 @@ class TCPServer extends BaseServer
                 @emit TCPServer.DATA_EVENT, @getConnection(socket.id), d if d != ""
 
         socket.on 'error', (exception) =>
+            # the close vent will be called after this one
             console.log "socket.id "+socket.id+" error. exception = "+exception
-            @finalizeDisconnection socket.id
 
         socket.on 'close', (had_error) =>
 
