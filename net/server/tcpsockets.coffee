@@ -1,4 +1,5 @@
 net = require 'net'
+winston = require('winston')
 BaseServer = require('./server.base').BaseServer
 Connection = require('../connection/connection').Connection
 
@@ -21,11 +22,11 @@ class TCPServer extends BaseServer
         @emit TCPServer.NEW_CONNECTION_EVENT, currentConnection
 
         socket.setTimeout 60000, =>
-            console.log "connection timed out "+socket.id
+            winston.info "connection timed out "+socket.id
             @finalizeDisconnection socket.id
 
         socket.on 'end', =>
-            console.log "connection ended"
+            winston.info "connection #{socket.id} ended"
 
         socket.on 'data', (data) =>
             data = data.split "\r\n"
@@ -35,12 +36,12 @@ class TCPServer extends BaseServer
 
         socket.on 'error', (exception) =>
             # the close vent will be called after this one
-            console.log "socket.id "+socket.id+" error. exception = "+exception
+            winston.log 'error', "socket.id "+socket.id+" error. exception = "+exception
             socket.destroy()
 
         socket.on 'close', (had_error) =>
-            console.log "connection #{socket.id} closed"
-            console.log "socket::close an error occured "+socket.id if had_error
+            winston.info "connection #{socket.id} closed"
+            winston.info "socket::close an error occured "+socket.id if had_error
             @finalizeDisconnection socket.id
             
 
@@ -53,6 +54,6 @@ class TCPServer extends BaseServer
 
     startListening: =>
         @server.listen @port, =>
-            console.log "server started listening on port", @port
+            winston.info "server started listening on port", @port
 
 exports.Server = TCPServer

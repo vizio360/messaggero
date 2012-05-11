@@ -4,6 +4,10 @@ Connection = require('./net/connection/connection').Connection
 Packet = require('./net/connection/packet').Packet
 async = require('async')
 program = require('commander')
+winston = require('winston')
+dateformat = require('dateFormat')
+
+
 
 
 ### Loading plugins ###
@@ -14,7 +18,7 @@ loadPlugins = (callback) ->
     console.log "loading plugins"
     fs.readdir pm.pluginDir, (err, files) =>
         if err?
-            console.log err
+            console.log 'error', err
         else
             for file in files
                 #removing the coffee extension
@@ -23,7 +27,6 @@ loadPlugins = (callback) ->
                 continue if file[file.length-1] != "coffee"
                 # rebuild filename without coffee extension
                 file = file[0...-1].join(".")
-                console.log file
                 pm.registerByName file
         callback null, 1
 
@@ -32,22 +35,31 @@ loadPlugins = (callback) ->
 configuration = {}
 
 loadConfiguration = (callback) ->
-    console.log "loading configuration"
     fs.readFile './config.json', 'utf8', (err, data) ->
+        console.log 'error', err if err?
         configuration = JSON.parse data
         callback null, 2
 
 server = null
 startApplication = (err, results)->
-    console.log "loading application"
     program.option('-p, --port [value]', 'port hermes listens to').parse(process.argv)
     configuration.port = if (program.port?) then program.port else configuration.port
+
+    winston.info "loading application"
+
+    now = dateformat(new Date(), "yyyymmddhhMMss")
+    winston.add winston.transports.File, { filename: "logs/#{now}-hermes-#{configuration.port}.log", 'timestamp':true, 'json':false }
+    winston.remove winston.transports.Console
+    winston.handleExceptions new winston.transports.File( { filename:"logs/#{now}-hermes-#{configuration.port}-exceptions.log", 'timestamp':true } )
+
     Server = require('./net/server/'+configuration.serverType).Server
     server = new Server configuration.port
     server.on Server.NEW_CONNECTION_EVENT, onNewConnection
     server.on Server.DATA_EVENT, onData
     server.on Server.DISCONNECTION_EVENT, onDisconnection
     server.startListening()
+    winston.info "Server started on port #{configuration.port}"
+
     
 # loading plugins and configuration files before starting the app
 async.series [loadPlugins, loadConfiguration], startApplication
@@ -70,3 +82,6 @@ onData = (connection, data) ->
 
 onDisconnection = (connection) ->
     pm.onConnectionDisconnected connection # on every lost connection each plugin is notified
+
+
+

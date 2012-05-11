@@ -4,6 +4,7 @@
                             "net" : "1.0.0", 
                             "async": "0.1.18",
                             "docco-husky": "0.3.3",
-                            "commander": "0.6.0"
+                            "commander": "0.6.0",
+                            "winston": "0.5.11"
                        } 
 }
