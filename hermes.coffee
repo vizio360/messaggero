@@ -5,7 +5,7 @@ Packet = require('./net/connection/packet').Packet
 async = require('async')
 program = require('commander')
 winston = require('winston')
-dateformat = require('dateFormat')
+dateformat = require('dateformat')
 
 
 
