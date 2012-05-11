@@ -3,6 +3,7 @@ fs = require 'fs'
 Connection = require('./net/connection/connection').Connection
 Packet = require('./net/connection/packet').Packet
 async = require('async')
+program = require('commander')
 
 
 ### Loading plugins ###
@@ -39,6 +40,8 @@ loadConfiguration = (callback) ->
 server = null
 startApplication = (err, results)->
     console.log "loading application"
+    program.option('-p, --port [value]', 'port hermes listens to').parse(process.argv)
+    configuration.port = if (program.port?) then program.port else configuration.port
     Server = require('./net/server/'+configuration.serverType).Server
     server = new Server configuration.port
     server.on Server.NEW_CONNECTION_EVENT, onNewConnection
