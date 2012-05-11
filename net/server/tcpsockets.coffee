@@ -9,7 +9,7 @@ class TCPServer extends BaseServer
         super
 
     writeMethod: (connection, msg) =>
-            connection.socket.write msg
+        connection.socket.write msg if not connection.socket.closed
 
     onConnectionEstablished: (socket) =>
         socket.setEncoding 'utf8'
