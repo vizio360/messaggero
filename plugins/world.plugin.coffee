@@ -39,7 +39,6 @@ class World extends PluginBase
         # use the chat
         if msgPacket.command != "listConnections"
             if not (connection.getData("username")?)
-                #console.log "not logged in"
                 return
 
         super connection, msgPacket
@@ -155,14 +154,12 @@ class Room
         @connections = {}
 
     join: (connection) =>
-        #console.log connection.getData("username"), "joining", @id
         @connections[connection.id] =  connection
         connection.setData "room", @id
         connection.on Connection.PACKET_BROADCAST_EVENT, @broadcast
         connection.on Connection.DISCONNECT_EVENT, @removeConnection
 
     leave: (connection) =>
-        #console.log connection.getData("username"), "leaving", @id
         @removeConnection connection
 
     broadcast: (sourceConnection, sourcePacket, args...) =>

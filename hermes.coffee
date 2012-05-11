@@ -57,6 +57,8 @@ onNewConnection = (connection) ->
 
 onData = (connection, data) ->
 
+    return if not connection?
+
     separator = data.charAt(0)
     data = data.split separator
     command = data[1]
