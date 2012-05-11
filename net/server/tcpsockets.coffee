@@ -44,14 +44,14 @@ class TCPServer extends BaseServer
 
         socket.on 'close', (had_error) =>
 
-            console.log "connection closed"
-            console.log "socket::close an error occured" if had_error
+            console.log "connection #{socket.id} closed"
+            console.log "socket::close an error occured "+socket.id if had_error
             @finalizeDisconnection socket.id
-            socket.removeAllListeners()
             
 
     finalizeDisconnection: (id) =>
         connection = @getConnection id
+        connection.socket.removeAllListeners()
         connection.socket.destroy()
         connection.disconnected()
         connection.removeAllListeners()
