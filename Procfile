@@ -1,1 +1,1 @@
-hermes: coffee hermes.coffee
+hermes: ./startup.sh
