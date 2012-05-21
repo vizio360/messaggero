@@ -1,6 +1,7 @@
 EventEmitter = require('events').EventEmitter
 
 class Connection extends EventEmitter
+
     @DISCONNECT_EVENT: "Connection::DISCONNECT"
     @PACKET_SENT_EVENT: "Connection::PACKET_SENT"
     @PACKET_BROADCAST_EVENT: "Connection::PACKET_BROADCAST"

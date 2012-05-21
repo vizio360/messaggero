@@ -1,5 +1,3 @@
-# 
-#
 # Object to store the data for a packet. 
 # A packet is what connections receive and send.
 #

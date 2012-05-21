@@ -69,6 +69,11 @@ class PluginManager
 
         plugins = @pluginMap[msgPacket.command]
         if plugins?.length > 0
+            # FIXME we need to catch any exception raised by any plugin
+            # and log them
+            # FIXME we also need to time each execute and report if a
+            # plugin takes more than X amount of time to process a
+            # request
             plugin.execute(connection, msgPacket) for plugin in plugins
         else
             console.log "no plugin to handle message:#{msgPacket}"

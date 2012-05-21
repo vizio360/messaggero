@@ -3,11 +3,9 @@ fs = require 'fs'
 Connection = require('./net/connection/connection').Connection
 Packet = require('./net/connection/packet').Packet
 async = require('async')
-program = require('commander')
+commander = require('commander')
 winston = require('winston')
 dateformat = require('dateformat')
-
-
 
 
 ### Loading plugins ###
@@ -42,8 +40,8 @@ loadConfiguration = (callback) ->
 
 server = null
 startApplication = (err, results)->
-    program.option('-p, --port [value]', 'port hermes listens to').parse(process.argv)
-    configuration.port = if (program.port?) then program.port else configuration.port
+    commander.option('-p, --port [value]', 'port hermes listens to').parse(process.argv)
+    configuration.port = if (commander.port?) then commander.port else configuration.port
 
     winston.info "loading application"
 
@@ -64,6 +62,7 @@ startApplication = (err, results)->
 # loading plugins and configuration files before starting the app
 async.series [loadPlugins, loadConfiguration], startApplication
 
+# handling server callbacks
 onNewConnection = (connection) ->
     pm.onNewConnection connection # on every new connection each plugin is notified
 
