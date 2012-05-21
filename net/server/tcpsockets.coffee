@@ -28,6 +28,7 @@ class TCPServer extends BaseServer
             if connection?
                 connection.disconnect()
             else
+                winston.info "connection timed out but no connection object found for socket "+socket.id
                 socket.destroy()
 
 
