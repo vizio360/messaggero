@@ -1,1 +1,0 @@
-hermes: ./startup.sh
