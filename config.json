@@ -1,4 +1,5 @@
 {
     "serverType": "tcpsockets",
-    "port": 8124
+    "port": 8124,
+    "logFolder": "logs"
 }

@@ -40,15 +40,18 @@ loadConfiguration = (callback) ->
 
 server = null
 startApplication = (err, results)->
+
+    logFolder = configuration.logFolder
+
     commander.option('-p, --port [value]', 'port hermes listens to').parse(process.argv)
     configuration.port = if (commander.port?) then commander.port else configuration.port
 
     winston.info "loading application"
 
     now = dateformat(new Date(), "yyyymmddhhMMss")
-    winston.add winston.transports.File, { filename: "logs/#{now}-hermes-#{configuration.port}.log", 'timestamp':true, 'json':false }
+    winston.add winston.transports.File, { filename: "#{logFolder}/#{now}-hermes-#{configuration.port}.log", 'timestamp':true, 'json':false }
     winston.remove winston.transports.Console
-    winston.handleExceptions new winston.transports.File( { filename:"logs/#{now}-hermes-#{configuration.port}-exceptions.log", 'timestamp':true } )
+    winston.handleExceptions new winston.transports.File( { filename:"#{logFolder}/#{now}-hermes-#{configuration.port}-exceptions.log", 'timestamp':true } )
 
     Server = require('./net/server/'+configuration.serverType).Server
     server = new Server configuration.port
