@@ -1,11 +1,13 @@
 PluginManager = require('./lib/plugin/plugin_manager').PluginManager
 fs = require 'fs'
+path = require 'path'
 Connection = require('./net/connection/connection').Connection
 Packet = require('./net/connection/packet').Packet
 async = require('async')
 commander = require('commander')
 winston = require('winston')
 dateformat = require('dateformat')
+crypto = require('crypto')
 
 
 ### Loading plugins ###
@@ -38,6 +40,20 @@ loadConfiguration = (callback) ->
         configuration = JSON.parse data
         callback null, 2
 
+
+
+# load the uuid from file if it exists
+# otherwise create a uuid and save it to file (ID)
+loadUUID = (callback) ->
+    if path.existsSync("ID")
+        UUID = fs.readFileSync './ID', 'utf8'
+    else
+        UUID = crypto.randomBytes(32).toString('hex') 
+        file = fs.openSync('./ID', 'w')
+        fs.writeSync(file, UUID, 0, UUID.length, 0)
+        fs.closeSync(file)
+    callback null, 3
+
 server = null
 startApplication = (err, results)->
 
@@ -63,7 +79,7 @@ startApplication = (err, results)->
 
     
 # loading plugins and configuration files before starting the app
-async.series [loadPlugins, loadConfiguration], startApplication
+async.series [loadPlugins, loadConfiguration, loadUUID], startApplication
 
 # handling server callbacks
 onNewConnection = (connection) ->
