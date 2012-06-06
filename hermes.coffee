@@ -8,6 +8,7 @@ commander = require('commander')
 winston = require('winston')
 dateformat = require('dateformat')
 crypto = require('crypto')
+Registrar = require('./registrar').Registrar
 
 
 ### Loading plugins ###
@@ -48,11 +49,31 @@ loadUUID = (callback) ->
     if path.existsSync("ID")
         UUID = fs.readFileSync './ID', 'utf8'
     else
-        UUID = crypto.randomBytes(32).toString('hex') 
+        UUID = crypto.randomBytes(32).toString('hex')
         file = fs.openSync('./ID', 'w')
         fs.writeSync(file, UUID, 0, UUID.length, 0)
         fs.closeSync(file)
+    configuration.id = UUID
     callback null, 3
+
+
+
+
+register = (callback) ->
+    registrar = new Registrar()
+    # we get ec2 instance info only on startup
+    # they should change only on restart of the
+    # machine
+    registrar.getEc2InstanceInfo (err) ->
+        # if err?
+        # we should exit and log the error
+        registrar.register configuration, (err) ->
+            # if err?
+            # we should exit and log the error
+            console.log "registered"
+            callback null, 4
+
+
 
 server = null
 startApplication = (err, results)->
@@ -79,7 +100,7 @@ startApplication = (err, results)->
 
     
 # loading plugins and configuration files before starting the app
-async.series [loadPlugins, loadConfiguration, loadUUID], startApplication
+async.series [loadPlugins, loadConfiguration, loadUUID, register], startApplication
 
 # handling server callbacks
 onNewConnection = (connection) ->
