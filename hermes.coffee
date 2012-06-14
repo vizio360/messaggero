@@ -105,5 +105,3 @@ onData = (connection, data) ->
 onDisconnection = (connection) ->
     pm.onConnectionDisconnected connection # on every lost connection each plugin is notified
 
-
-

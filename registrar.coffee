@@ -1,17 +1,28 @@
+async = require('async')
 rest = require('restler')
 
 class Registrar
 
     getEc2InstanceInfo: (configuration, cb) =>
         aws = configuration.amazonMetaDataWS
-        rest.get(aws + 'instance-id').on 'complete', (result) =>
-            @ec2InstanceId = result
-            # FIXME cannot understand why the @ip field
-            # is not set. There is a bit of scope creepiness here.
-            rest.get(aws + 'public-hostname').on 'complete', (result) =>
-                @ip = result
-                cb()
+        data =
+            id:async.apply(@getInfo, aws + 'instance-id')
+            dns:async.apply(@getInfo, aws + 'public-hostname')
+            
+        async.parallel data, (err, results) =>
+            # FIXME we should handle the error here
+            # maybe sending an email
+            # or setting the values to something
+            # that explains the problem
+            @ec2InstanceId = results.id
+            @ip = results.dns
+            cb()
 
+    getInfo: (endPoint, callback) ->
+        rest.get(endPoint).on 'complete', (result) =>
+            callback(null, result)
+
+        
 
     register: (configuration, cb) =>
 
