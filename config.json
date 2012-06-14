@@ -1,5 +1,9 @@
 {
+    "uuid": "SomeUUID",
     "serverType": "tcpsockets",
     "port": 8124,
-    "logFolder": "logs"
+    "logFolder": "logs",
+    "maxConnections": 20,
+    "zeusEndPoint": "http://localhost:3000/",
+    "amazonMetaDataWS": "http://169.254.169.254/latest/meta-data/" 
 }
