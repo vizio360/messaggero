@@ -1,6 +1,5 @@
 PluginManager = require('./lib/plugin/plugin_manager').PluginManager
 fs = require 'fs'
-path = require 'path'
 Connection = require('./net/connection/connection').Connection
 Packet = require('./net/connection/packet').Packet
 async = require('async')
