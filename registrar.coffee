@@ -26,7 +26,7 @@ class Registrar
 
     register: (configuration, cb) =>
 
-        path = "hermes/#{configuration.uuid}"
+        path = "/hermes/#{configuration.uuid}"
         body =
             maxConnections: configuration.maxConnections
             ip: @ip
