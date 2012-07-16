@@ -9,6 +9,13 @@ dateformat = require('dateformat')
 Registrar = require('./registrar').Registrar
 
 
+### get command line parameters ###
+
+commander.option('--noRegistration', 'avoid registration on to zeus').parse(process.argv)
+commander.option('-p, --port [value]', 'port hermes listens to').parse(process.argv)
+
+
+
 ### Loading plugins ###
 pm = new PluginManager()
 
@@ -42,6 +49,10 @@ loadConfiguration = (callback) ->
 
 
 register = (callback) ->
+
+    if commander.noRegistration?
+        callback null,3
+        return
     registrar = new Registrar()
     # we get ec2 instance info only on startup
     # they should change only on restart of the
@@ -62,7 +73,6 @@ startApplication = (err, results)->
 
     logFolder = configuration.logFolder
 
-    commander.option('-p, --port [value]', 'port hermes listens to').parse(process.argv)
     configuration.port = if (commander.port?) then commander.port else configuration.port
 
     winston.info "loading application"
